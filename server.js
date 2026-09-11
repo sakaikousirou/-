@@ -129,6 +129,61 @@ function generateHand() {
 let waitingPlayer = null;
 const games = {};
 
+function resolveAttack(game, room, defenderCard = null) {
+  const pending = game.pendingAttack;
+  if (!pending) return;
+
+  const attacker = game.players[pending.attacker];
+  const defenderNum = pending.attacker === 1 ? 2 : 1;
+  const defender = game.players[defenderNum];
+
+  let blockPower = 0;
+  let log = "";
+
+  if (defenderCard) {
+    blockPower = defenderCard.power;
+    const finalDamage = Math.max(0, pending.card.power - blockPower);
+    defender.hp = Math.max(0, defender.hp - finalDamage);
+    log = `⚔️ ${attacker.char} の「${pending.card.name}」！ 🛡️ ${defender.char} は「${defenderCard.name}」で防御！ 💥 ${defender.char} に ${finalDamage} ダメージ！ (軽減: ${blockPower})`;
+  } else {
+    const finalDamage = pending.card.power;
+    defender.hp = Math.max(0, defender.hp - finalDamage);
+    log = `⚔️ ${attacker.char} の「${pending.card.name}」！ 💥 ${defender.char} に ${finalDamage} ダメージ！ (ノーガード)`;
+  }
+
+  game.pendingAttack = null;
+
+  if (defender.hp <= 0) {
+    if (game.timerInterval) clearInterval(game.timerInterval);
+    io.to(room).emit("gameStateUpdate", {
+      log: log + ` 💀 ${defender.char} は倒れた！ ${attacker.char} の勝利！`,
+      winner: pending.attacker,
+      players: game.players,
+      phase: "END",
+      pendingAttack: null
+    });
+    delete games[room];
+    return;
+  }
+
+  // 攻撃解決後、防御側が新しい攻撃者となりターン交代 (MP+5回復)
+  game.phase = "ATTACK";
+  game.currentTurn = defenderNum;
+  defender.mp += 5;
+
+  const fullLog = log + ` ➡️ ${defender.char} の攻撃ターン！ (MP+5回復 → 現在MP: ${defender.mp})`;
+
+  io.to(room).emit("gameStateUpdate", {
+    log: fullLog,
+    players: game.players,
+    currentTurn: game.currentTurn,
+    phase: game.phase,
+    pendingAttack: null
+  });
+
+  startTimer(game, room);
+}
+
 function startTimer(game, room) {
   if (game.timerInterval) clearInterval(game.timerInterval);
   game.timer = 20;
@@ -140,27 +195,28 @@ function startTimer(game, room) {
 
     if (game.timer <= 0) {
       clearInterval(game.timerInterval);
-      switchTurn(game, room, "⏰ 時間切れ！ ターンがスキップされました。");
+      if (game.phase === "DEFENSE") {
+        // 防御ターンの時間切れはノーガードで即解決
+        resolveAttack(game, room, null);
+      } else {
+        // 攻撃ターンの時間切れはスキップ
+        const attacker = game.players[game.currentTurn];
+        const nextTurn = game.currentTurn === 1 ? 2 : 1;
+        game.currentTurn = nextTurn;
+        const nextPlayer = game.players[nextTurn];
+        nextPlayer.mp += 5;
+
+        io.to(room).emit("gameStateUpdate", {
+          log: `⏰ ${attacker.char} は時間切れ！ ➡️ ${nextPlayer.char} の攻撃ターン！ (MP+5回復 → 現在MP: ${nextPlayer.mp})`,
+          players: game.players,
+          currentTurn: game.currentTurn,
+          phase: "ATTACK",
+          pendingAttack: null
+        });
+        startTimer(game, room);
+      }
     }
   }, 1000);
-}
-
-function switchTurn(game, room, baseLog = "") {
-  game.currentTurn = game.currentTurn === 1 ? 2 : 1;
-  const nextPlayer = game.players[game.currentTurn];
-
-  // 毎ターン MP+5 回復
-  nextPlayer.mp += 5;
-
-  const log = baseLog + ` ➡️ ${nextPlayer.char} のターン！ (MP+5回復 → 現在MP: ${nextPlayer.mp})`;
-
-  io.to(room).emit("gameStateUpdate", {
-    log,
-    players: game.players,
-    currentTurn: game.currentTurn
-  });
-
-  startTimer(game, room);
 }
 
 io.on("connection", (socket) => {
@@ -178,10 +234,12 @@ io.on("connection", (socket) => {
 
     games[roomName] = {
       players: {
-        1: { id: p1.id, charKey: "suzuki", char: null, hp: 60, mp: 10, shield: 0, hand: generateHand(), ready: false },
-        2: { id: p2.id, charKey: "suzuki", char: null, hp: 60, mp: 10, shield: 0, hand: generateHand(), ready: false }
+        1: { id: p1.id, charKey: "suzuki", char: null, hp: 60, mp: 10, hand: generateHand(), ready: false },
+        2: { id: p2.id, charKey: "suzuki", char: null, hp: 60, mp: 10, hand: generateHand(), ready: false }
       },
       currentTurn: 1,
+      phase: "ATTACK",
+      pendingAttack: null,
       timer: 20,
       timerInterval: null
     };
@@ -200,11 +258,16 @@ io.on("connection", (socket) => {
     game.players[playerNumber].char = charInfo.name;
     game.players[playerNumber].hp = charInfo.hp;
     game.players[playerNumber].mp = charInfo.mp;
-    game.players[playerNumber].shield = 0;
     game.players[playerNumber].ready = true;
 
     if (game.players[1].ready && game.players[2].ready) {
-      io.to(room).emit("gameStart", { room, players: game.players, currentTurn: 1 });
+      io.to(room).emit("gameStart", {
+        room,
+        players: game.players,
+        currentTurn: 1,
+        phase: "ATTACK",
+        pendingAttack: null
+      });
       startTimer(game, room);
     }
   });
@@ -217,9 +280,6 @@ io.on("connection", (socket) => {
     if (game.currentTurn !== playerNumber) return;
 
     const player = game.players[playerNumber];
-    const opponentNumber = playerNumber === 1 ? 2 : 1;
-    const opponent = game.players[opponentNumber];
-
     const idx = player.hand.findIndex(c => c.instanceId === cardInstanceId);
     if (idx === -1) return;
 
@@ -230,42 +290,62 @@ io.on("connection", (socket) => {
       return;
     }
 
-    player.mp -= card.mp;
-    player.hand.splice(idx, 1);
-    player.hand.push(getRandomCard());
+    if (game.phase === "ATTACK") {
+      if (card.type === "defense") {
+        socket.emit("errorMsg", "攻撃ターンです！攻撃カードまたは回復魔法を選択してください。");
+        return;
+      }
 
-    let actionLog = "";
+      player.mp -= card.mp;
+      player.hand.splice(idx, 1);
+      player.hand.push(getRandomCard());
 
-    if (card.type === "heal") {
-      player.hp += card.power;
-      actionLog = `✨ ${player.char} は「${card.name}」で HP${card.power} 回復！`;
-    } else if (card.type === "defense") {
-      player.shield += card.power;
-      actionLog = `🛡️ ${player.char} は「${card.name}」を使用！ ガード値+${card.power} (現在シールド: ${player.shield})`;
-    } else {
-      // 攻撃のダメージ計算（シールドで軽減）
-      const currentShield = opponent.shield;
-      const actualDamage = Math.max(0, card.power - currentShield);
-      opponent.shield = Math.max(0, currentShield - card.power);
+      if (card.type === "heal") {
+        player.hp += card.power;
+        const opponentNumber = playerNumber === 1 ? 2 : 1;
+        const opponent = game.players[opponentNumber];
+        game.currentTurn = opponentNumber;
+        opponent.mp += 5;
 
-      opponent.hp = Math.max(0, opponent.hp - actualDamage);
-      
-      const shieldMsg = currentShield > 0 ? ` (シールドで ${card.power - actualDamage} 軽減)` : "";
-      actionLog = `⚔️ ${player.char} の「${card.name}」！${shieldMsg} ${opponent.char} に ${actualDamage} ダメージ！`;
+        io.to(room).emit("gameStateUpdate", {
+          log: `✨ ${player.char} は「${card.name}」で HP${card.power} 回復！ ➡️ ${opponent.char} の攻撃ターン！ (MP+5回復 → 現在MP: ${opponent.mp})`,
+          players: game.players,
+          currentTurn: game.currentTurn,
+          phase: "ATTACK",
+          pendingAttack: null
+        });
+        startTimer(game, room);
+      } else {
+        // 攻撃宣言 ➔ 相手の防御ターンへ
+        const defenderNumber = playerNumber === 1 ? 2 : 1;
+        const defender = game.players[defenderNumber];
+
+        game.pendingAttack = { attacker: playerNumber, card: card };
+        game.phase = "DEFENSE";
+        game.currentTurn = defenderNumber;
+
+        io.to(room).emit("gameStateUpdate", {
+          log: `⚔️ ${player.char} の「${card.name}」(威力:${card.power})！ 🛡️ ${defender.char} の防御ターン！`,
+          players: game.players,
+          currentTurn: game.currentTurn,
+          phase: "DEFENSE",
+          pendingAttack: game.pendingAttack
+        });
+        startTimer(game, room);
+      }
+
+    } else if (game.phase === "DEFENSE") {
+      if (card.type !== "defense") {
+        socket.emit("errorMsg", "防御ターンです！防御カードを選択するか「パス」してください。");
+        return;
+      }
+
+      player.mp -= card.mp;
+      player.hand.splice(idx, 1);
+      player.hand.push(getRandomCard());
+
+      resolveAttack(game, room, card);
     }
-
-    if (opponent.hp <= 0) {
-      if (game.timerInterval) clearInterval(game.timerInterval);
-      io.to(room).emit("gameStateUpdate", {
-        log: actionLog + ` 💀 ${opponent.char} は倒れた！ ${player.char} の勝利！`,
-        winner: playerNumber,
-        players: game.players
-      });
-      delete games[room];
-      return;
-    }
-
-    switchTurn(game, room, actionLog);
   });
 
   socket.on("passTurn", (data) => {
@@ -273,9 +353,28 @@ io.on("connection", (socket) => {
     const game = games[room];
     if (!game) return;
 
-    if (game.currentTurn === playerNumber) {
+    if (game.currentTurn !== playerNumber) return;
+
+    if (game.phase === "DEFENSE") {
+      // 防御側が「パス」を押すとノーガードで攻撃を受ける
+      resolveAttack(game, room, null);
+    } else {
+      // 攻撃側が「パス」を押すと攻撃スキップ
       const player = game.players[playerNumber];
-      switchTurn(game, room, `🍃 ${player.char} はパスしました。`);
+      const opponentNumber = playerNumber === 1 ? 2 : 1;
+      const opponent = game.players[opponentNumber];
+
+      game.currentTurn = opponentNumber;
+      opponent.mp += 5;
+
+      io.to(room).emit("gameStateUpdate", {
+        log: `🍃 ${player.char} は攻撃をパスしました。 ➡️ ${opponent.char} の攻撃ターン！ (MP+5回復 → 現在MP: ${opponent.mp})`,
+        players: game.players,
+        currentTurn: game.currentTurn,
+        phase: "ATTACK",
+        pendingAttack: null
+      });
+      startTimer(game, room);
     }
   });
 });
