@@ -2,134 +2,205 @@ const socket = io();
 
 let currentRoom = null;
 let myPlayerNumber = null;
-let isMyTurn = false;
 let myHand = [];
+let currentTurn = 1;
 
-const statusText = document.getElementById("status-text");
-const charSelectContainer = document.getElementById("char-select-container");
-const charCardsDiv = document.getElementById("char-cards");
-const gameContainer = document.getElementById("game-container");
-const cardsGrid = document.getElementById("cards-grid");
-const turnIndicator = document.getElementById("turn-indicator");
-const logDiv = document.getElementById("log");
+// ドット絵データ（鈴木ゴンザレス・ウィザード・ローグ）
+const PIXEL_DATA = {
+  suzuki: [
+    "....RRRR....",
+    "...RRRRRR...",
+    "...RROORR...",
+    "...OOOOOO...",
+    "..RRRRRRRR..",
+    "..RRRRRRRR..",
+    "..RRRRRRRR..",
+    "...RR..RR...",
+    "...BB..BB..."
+  ],
+  wizard: [
+    "....BBBB....",
+    "...BBBBBB...",
+    "..BBBBBBBB..",
+    "...OOOOOO...",
+    "..YYYYYYYY..",
+    "..YYYYYYYY..",
+    "..YYYYYYYY..",
+    "...YY..YY...",
+    "...BB..BB..."
+  ],
+  rogue: [
+    "....GGGG....",
+    "...GGGGGG...",
+    "...GGOOGG...",
+    "...OOOOOO...",
+    "..GGGGGGGG..",
+    "..GGGGGGGG..",
+    "..GGGGGGGG..",
+    "...GG..GG...",
+    "...BB..BB..."
+  ]
+};
 
-const myHpBar = document.getElementById("my-hp-bar");
-const myHpText = document.getElementById("my-hp-text");
-const enemyHpBar = document.getElementById("enemy-hp-bar");
-const enemyHpText = document.getElementById("enemy-hp-text");
-const myName = document.getElementById("my-name");
-const enemyName = document.getElementById("enemy-name");
-const myStatusBadge = document.getElementById("my-status-badge");
-const enemyStatusBadge = document.getElementById("enemy-status-badge");
+const COLOR_MAP = {
+  "R": "#d32f2f", // 赤 (鈴木ゴンザレス)
+  "O": "#ffcc80", // 肌色
+  "B": "#212121", // 黒/服
+  "Y": "#7b1fa2", // 紫 (ウィザード)
+  "G": "#388e3c", // 緑 (ローグ)
+  ".": "transparent"
+};
 
-socket.on("status", (msg) => statusText.textContent = msg);
+// Canvasにドット絵を描画する関数
+function drawPixelArt(canvasId, charKey) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  const pixels = PIXEL_DATA[charKey] || PIXEL_DATA.suzuki;
+  const pixelSize = 7;
+  const offsetX = (canvas.width - 12 * pixelSize) / 2;
+  const offsetY = (canvas.height - 9 * pixelSize) / 2;
+
+  pixels.forEach((row, y) => {
+    for (let x = 0; x < row.length; x++) {
+      const char = row[x];
+      if (char !== ".") {
+        ctx.fillStyle = COLOR_MAP[char] || "#fff";
+        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, pixelSize, pixelSize);
+      }
+    }
+  });
+}
+
+// キャラ選択画面の描画
 socket.on("selectCharacterPhase", (data) => {
   currentRoom = data.room;
-  statusText.textContent = "対戦相手が見つかりました！キャラを選んでください。";
-  charSelectContainer.style.display = "block";
+  myPlayerNumber = data.playerNumber;
 
-  charCardsDiv.innerHTML = "";
+  document.getElementById("status-msg").style.display = "none";
+  document.getElementById("select-screen").style.display = "block";
+
+  const container = document.getElementById("char-list");
+  container.innerHTML = "";
+
   Object.keys(data.characters).forEach(key => {
-    const c = data.characters[key];
-    const div = document.createElement("div");
-    div.className = "char-card";
-    div.innerHTML = `<h4 style="color:#f1c40f;">${c.name}</h4><p style="font-size:12px; margin:5px 0;">HP: ${c.hp}</p><p style="font-size:10px; color:#aaa;">${c.desc}</p>`;
-    div.onclick = () => {
-      myPlayerNumber = myPlayerNumber || (charCardsDiv.dataset.selected ? 2 : 1);
-      socket.emit("selectCharacter", { room: currentRoom, playerNumber: myPlayerNumber, charKey: key });
-      charSelectContainer.style.display = "none";
-      statusText.textContent = "相手のキャラ選択を待っています...";
-    };
-    charCardsDiv.appendChild(div);
-  });
-});
+    const char = data.characters[key];
+    const card = document.createElement("div");
+    card.className = "char-card";
+    card.onclick = () => selectChar(key);
 
-socket.on("gameStart", (data) => {
-  const isP1 = !myHand.length;
-  myPlayerNumber = isP1 ? 1 : myPlayerNumber;
-
-  const myState = myPlayerNumber === 1 ? data.p1State : data.p2State;
-  const enemyState = myPlayerNumber === 1 ? data.p2State : data.p1State;
-
-  isMyTurn = (myPlayerNumber === 1);
-  statusText.textContent = `試合開始！ あなた: ${myState.char} VS 相手: ${enemyState.char}`;
-  gameContainer.style.display = "flex";
-
-  myName.textContent = `${myState.char} (あなた)`;
-  enemyName.textContent = `${enemyState.char} (相手)`;
-
-  updatePlayerUI(myState, true);
-  updatePlayerUI(enemyState, false);
-
-  myHand = myState.hand;
-  renderHand();
-  updateTurn();
-});
-
-function updatePlayerUI(playerState, isMe) {
-  const pct = Math.max(0, (playerState.hp / playerState.maxHp) * 100);
-  const bar = isMe ? myHpBar : enemyHpBar;
-  const txt = isMe ? myHpText : enemyHpText;
-  const badge = isMe ? myStatusBadge : enemyStatusBadge;
-
-  bar.style.width = pct + "%";
-  txt.textContent = `${playerState.hp} / ${playerState.maxHp}`;
-
-  let stText = "";
-  if (playerState.status.burn > 0) stText += ` 🔥やけど(${playerState.status.burn})`;
-  if (playerState.status.freeze > 0) stText += ` 🧊こおり`;
-  if (playerState.status.confused > 0) stText += ` 🌀混乱(${playerState.status.confused})`;
-  if (playerState.status.counter) stText += ` 🛡️カウンター`;
-  if (playerState.status.magicUp) stText += ` ✨魔力2倍`;
-
-  badge.textContent = stText;
-}
-
-function updateTurn() {
-  turnIndicator.textContent = isMyTurn ? "【あなたのターン】" : "【相手のターン】";
-  turnIndicator.className = "turn-indicator " + (isMyTurn ? "my-turn" : "enemy-turn");
-}
-
-function renderHand() {
-  cardsGrid.innerHTML = "";
-  myHand.forEach(card => {
-    const el = document.createElement("div");
-    el.className = `card ${!isMyTurn ? "disabled" : ""}`;
-    el.innerHTML = `
-      <div>
-        <span class="cat-${card.category}">${card.category}</span>
-        <div style="font-weight:bold; font-size:13px; margin-top:4px;">${card.name}</div>
-        <div style="font-size:10px; color:#aaa;">${card.desc}</div>
-      </div>
-      <div style="text-align:right; font-size:12px; color:#f39c12; font-weight:bold;">${card.power > 0 ? card.power : ''}</div>
+    card.innerHTML = `
+      <canvas id="canvas-select-${key}" class="pixel-art" width="70" height="70"></canvas>
+      <div style="font-weight:bold; margin-top:5px;">${char.name}</div>
+      <div style="font-size:0.8rem; color:#aaa;">HP:${char.hp} / MP:${char.mp}</div>
+      <div style="font-size:0.7rem; color:#ddd; margin-top:4px;">${char.desc}</div>
     `;
-    if (isMyTurn) el.onclick = () => socket.emit("playCard", { room: currentRoom, playerNumber: myPlayerNumber, cardInstanceId: card.instanceId });
-    cardsGrid.appendChild(el);
+    container.appendChild(card);
+    setTimeout(() => drawPixelArt(`canvas-select-${key}`, key), 50);
   });
+});
+
+function selectChar(charKey) {
+  socket.emit("selectCharacter", { room: currentRoom, playerNumber: myPlayerNumber, charKey });
+  document.getElementById("select-screen").innerHTML = "<h3 style='color:#00e676;'>相手の選択を待っています...</h3>";
 }
 
+// ゲーム開始
+socket.on("gameStart", (data) => {
+  document.getElementById("select-screen").style.display = "none";
+  document.getElementById("battle-screen").style.display = "block";
+  updateState(data);
+});
+
+// 状態更新
 socket.on("gameStateUpdate", (data) => {
   if (data.log) {
-    const p = document.createElement("div");
-    p.textContent = data.log;
-    logDiv.appendChild(p);
-    logDiv.scrollTop = logDiv.scrollHeight;
+    const logBox = document.getElementById("log-box");
+    logBox.innerHTML += `<div>${data.log}</div>`;
+    logBox.scrollTop = logBox.scrollHeight;
+  }
+  updateState(data);
+});
+
+function updateState(data) {
+  currentTurn = data.currentTurn;
+  const p1 = data.players[1];
+  const p2 = data.players[2];
+
+  // プレイヤー1情報
+  document.getElementById("p1-name").innerText = p1.char || "P1";
+  document.getElementById("p1-hp").innerText = p1.hp;
+  document.getElementById("p1-mp").innerText = p1.mp;
+  document.getElementById("p1-hp-fill").style.width = `${Math.max(0, (p1.hp / 60) * 100)}%`;
+  document.getElementById("p1-mp-fill").style.width = `${Math.min(100, (p1.mp / 30) * 100)}%`;
+  drawPixelArt("p1-canvas", p1.charKey || "suzuki");
+
+  // プレイヤー2情報
+  document.getElementById("p2-name").innerText = p2.char || "P2";
+  document.getElementById("p2-hp").innerText = p2.hp;
+  document.getElementById("p2-mp").innerText = p2.mp;
+  document.getElementById("p2-hp-fill").style.width = `${Math.max(0, (p2.hp / 60) * 100)}%`;
+  document.getElementById("p2-mp-fill").style.width = `${Math.min(100, (p2.mp / 30) * 100)}%`;
+  drawPixelArt("p2-canvas", p2.charKey || "suzuki");
+
+  // 手札更新
+  const myData = data.players[myPlayerNumber];
+  if (myData && myData.hand) {
+    myHand = myData.hand;
+    renderHand(myData.mp);
   }
 
-  const me = data.players[myPlayerNumber];
-  const enemy = data.players[myPlayerNumber === 1 ? 2 : 1];
-
-  updatePlayerUI(me, true);
-  updatePlayerUI(enemy, false);
-
-  myHand = me.hand;
-  isMyTurn = (data.turn === myPlayerNumber);
-
-  renderHand();
-  updateTurn();
-
-  if (data.winner) {
-    turnIndicator.textContent = data.winner === myPlayerNumber ? "🏆 あなたの勝利！" : "💀 相手の勝利...";
+  // ターン案内
+  if (currentTurn === myPlayerNumber) {
+    document.getElementById("status-msg").innerText = "あなたのターンです！技を選んでください";
+    document.getElementById("status-msg").style.color = "#00e676";
+  } else {
+    document.getElementById("status-msg").innerText = "相手のターンです...";
+    document.getElementById("status-msg").style.color = "#ff9800";
   }
+}
+
+function renderHand(myMp) {
+  const container = document.getElementById("hand-list");
+  container.innerHTML = "";
+
+  myHand.forEach(card => {
+    const isMyTurn = (currentTurn === myPlayerNumber);
+    const canAfford = (myMp >= card.mp);
+    const disabled = !isMyTurn || !canAfford;
+
+    const div = document.createElement("div");
+    div.className = `card-item ${disabled ? "disabled" : ""}`;
+    if (!disabled) {
+      div.onclick = () => playCard(card.instanceId);
+    }
+
+    div.innerHTML = `
+      <div class="card-cat">${card.category}</div>
+      <div class="card-name">${card.name}</div>
+      <div>威:${card.power}</div>
+      <div class="card-cost">MP ${card.mp}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function playCard(cardInstanceId) {
+  if (currentTurn !== myPlayerNumber) return;
+  socket.emit("playCard", { room: currentRoom, playerNumber: myPlayerNumber, cardInstanceId });
+}
+
+function passTurn() {
+  if (currentTurn !== myPlayerNumber) return;
+  socket.emit("passTurn", { room: currentRoom, playerNumber: myPlayerNumber });
+}
+
+socket.on("timerUpdate", (sec) => {
+  document.getElementById("timer-display").innerText = `残り時間: ${sec}秒`;
+});
+
+socket.on("errorMsg", (msg) => {
+  alert(msg);
 });
