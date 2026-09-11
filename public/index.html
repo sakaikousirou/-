@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ゴッドフィールド風対戦プロトタイプ</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #222; color: #fff; }
+    .card-btn { padding: 10px 20px; margin: 5px; font-size: 16px; cursor: pointer; }
+    #log { background: #000; padding: 10px; height: 150px; overflow-y: scroll; border: 1px solid #555; }
+  </style>
+</head>
+<body>
+  <h1>2人対戦テスト</h1>
+  <p id="status-text">接続中...</p>
+  
+  <div id="game-area" style="display: none;">
+    <h3>手札（アクション選択）</h3>
+    <button class="card-btn" onclick="sendAction('弱攻撃')">弱攻撃</button>
+    <button class="card-btn" onclick="sendAction('強攻撃')">強攻撃</button>
+    <button class="card-btn" onclick="sendAction('防御')">防御</button>
+    <button class="card-btn" onclick="sendAction('ランダム魔法')">ランダム魔法</button>
+  </div>
+
+  <h3>対戦ログ</h3>
+  <div id="log"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
