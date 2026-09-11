@@ -8,112 +8,69 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-// キャラクター定義
+// キャラクター全10体定義
 const CHARACTERS = {
-  suzuki: { name: "鈴木ゴンザレス", hp: 60, mp: 10, desc: "高HP＆パワフルなレスラー" },
-  wizard: { name: "ウィザード", hp: 40, mp: 25, desc: "高MPで魔法攻撃が得意" },
-  rogue: { name: "ローグ", hp: 50, mp: 15, desc: "攻守バランスの取れた盗賊" }
+  suzuki:     { name: "鈴木ゴンザレス", hp: 70, mp: 12, desc: "高HP＆パワフルなレスラー" },
+  wizard:     { name: "ウィザード",     hp: 45, mp: 30, desc: "高MPで強力な魔法が得意" },
+  rogue:      { name: "ローグ",         hp: 55, mp: 18, desc: "攻守バランスの取れた盗賊" },
+  knight:     { name: "ナイト",         hp: 80, mp: 10, desc: "鉄壁の耐久力を誇る聖騎士" },
+  ninja:      { name: "忍者",           hp: 50, mp: 20, desc: "高威力の技とトリッキーな戦術家" },
+  berserker:  { name: "バーサーカー",   hp: 85, mp: 8,  desc: "超攻撃的だがMP回復が遅い狂戦士" },
+  paladin:    { name: "パラディン",     hp: 75, mp: 15, desc: "防御と回復を兼ね備える光の騎士" },
+  necromancer:{ name: "ネクロマンサー", hp: 40, mp: 35, desc: "圧倒的MPで大魔法を連発" },
+  archer:     { name: "アーチャー",     hp: 50, mp: 22, desc: "低消費MPの連続攻撃が得意" },
+  monk:       { name: "モンク",         hp: 65, mp: 16, desc: "気合いで自己回復と体術を繰り出す" }
 };
 
-// 技マスターデータ（基本攻撃15 / 強攻撃15 / 防御40 / 魔法20）
+// 技マスターデータ (防御最大値35)
 const CARD_MASTER = [
-  // --- 基本攻撃 (15種) ---
-  { id: "w01", name: "ジャブ", type: "attack", power: 5, mp: 1, category: "基本攻撃" },
-  { id: "w02", name: "ローキック", type: "attack", power: 7, mp: 1, category: "基本攻撃" },
-  { id: "w03", name: "ストレート", type: "attack", power: 6, mp: 1, category: "基本攻撃" },
-  { id: "w04", name: "クナイ投げ", type: "attack", power: 4, mp: 1, category: "基本攻撃" },
-  { id: "w05", name: "飛蹴り", type: "attack", power: 6, mp: 1, category: "基本攻撃" },
-  { id: "w06", name: "しっぺ", type: "attack", power: 3, mp: 0, category: "基本攻撃" },
-  { id: "w07", name: "カンチョー", type: "attack", power: 5, mp: 1, category: "基本攻撃" },
-  { id: "w08", name: "アッパーカット", type: "attack", power: 8, mp: 2, category: "基本攻撃" },
-  { id: "w09", name: "エルボー", type: "attack", power: 7, mp: 1, category: "基本攻撃" },
-  { id: "w10", name: "チョップ", type: "attack", power: 5, mp: 1, category: "基本攻撃" },
-  { id: "w11", name: "膝かけ", type: "attack", power: 3, mp: 0, category: "基本攻撃" },
-  { id: "w12", name: "影走り", type: "attack", power: 7, mp: 1, category: "基本攻撃" },
-  { id: "w13", name: "膝蹴り", type: "attack", power: 6, mp: 1, category: "基本攻撃" },
-  { id: "w14", name: "ネコパンチ", type: "attack", power: 3, mp: 0, category: "基本攻撃" },
-  { id: "w15", name: "つつき", type: "attack", power: 3, mp: 0, category: "基本攻撃" },
+  // --- 基本攻撃 ---
+  { id: "w01", name: "ジャブ", type: "attack", power: 8, mp: 2, category: "基本攻撃" },
+  { id: "w02", name: "ローキック", type: "attack", power: 10, mp: 2, category: "基本攻撃" },
+  { id: "w03", name: "ストレート", type: "attack", power: 11, mp: 3, category: "基本攻撃" },
+  { id: "w04", name: "クナイ投げ", type: "attack", power: 9, mp: 2, category: "基本攻撃" },
+  { id: "w05", name: "飛蹴り", type: "attack", power: 12, mp: 3, category: "基本攻撃" },
+  { id: "w06", name: "アッパーカット", type: "attack", power: 14, mp: 4, category: "基本攻撃" },
+  { id: "w07", name: "エルボー", type: "attack", power: 11, mp: 3, category: "基本攻撃" },
+  { id: "w08", name: "影走り", type: "attack", power: 13, mp: 3, category: "基本攻撃" },
 
-  // --- 強攻撃 (15種) ---
-  { id: "s01", name: "まわし蹴り", type: "attack", power: 12, mp: 3, category: "強攻撃" },
-  { id: "s02", name: "一本背負い", type: "attack", power: 16, mp: 4, category: "強攻撃" },
-  { id: "s03", name: "飛膝蹴り", type: "attack", power: 20, mp: 5, category: "強攻撃" },
-  { id: "s04", name: "居合切り", type: "attack", power: 14, mp: 3, category: "強攻撃" },
-  { id: "s05", name: "常闇突き", type: "attack", power: 22, mp: 6, category: "強攻撃" },
-  { id: "s06", name: "ドロップキック", type: "attack", power: 18, mp: 5, category: "強攻撃" },
-  { id: "s07", name: "ジャイアントスイング", type: "attack", power: 21, mp: 6, category: "強攻撃" },
-  { id: "s08", name: "必殺ラリアット", type: "attack", power: 12, mp: 3, category: "強攻撃" },
-  { id: "s09", name: "胴まわし回転蹴り", type: "attack", power: 19, mp: 5, category: "強攻撃" },
-  { id: "s10", name: "爆殺パンチ", type: "attack", power: 23, mp: 7, category: "強攻撃" },
-  { id: "s11", name: "竜巻砕き", type: "attack", power: 17, mp: 4, category: "強攻撃" },
-  { id: "s12", name: "落撃", type: "attack", power: 25, mp: 8, category: "強攻撃" },
-  { id: "s13", name: "必殺疾風突き", type: "attack", power: 9, mp: 2, category: "強攻撃" },
-  { id: "s14", name: "天空脚", type: "attack", power: 18, mp: 5, category: "強攻撃" },
-  { id: "s15", name: "カウンターアタック", type: "attack", power: 15, mp: 4, category: "強攻撃" },
+  // --- 強攻撃 ---
+  { id: "s01", name: "まわし蹴り", type: "attack", power: 20, mp: 5, category: "強攻撃" },
+  { id: "s02", name: "一本背負い", type: "attack", power: 24, mp: 6, category: "強攻撃" },
+  { id: "s03", name: "飛膝蹴り", type: "attack", power: 28, mp: 7, category: "強攻撃" },
+  { id: "s04", name: "居合切り", type: "attack", power: 22, mp: 5, category: "強攻撃" },
+  { id: "s05", name: "常闇突き", type: "attack", power: 32, mp: 8, category: "強攻撃" },
+  { id: "s06", name: "ドロップキック", type: "attack", power: 26, mp: 6, category: "強攻撃" },
+  { id: "s07", name: "ジャイアントスイング", type: "attack", power: 30, mp: 8, category: "強攻撃" },
+  { id: "s08", name: "落撃", type: "attack", power: 38, mp: 10, category: "強攻撃" },
 
-  // --- 防御技 (40種) ---
-  { id: "d01", name: "ガード", type: "defense", power: 5, mp: 0, category: "防御" },
-  { id: "d02", name: "パリィ", type: "defense", power: 8, mp: 1, category: "防御" },
-  { id: "d03", name: "盾受け", type: "defense", power: 10, mp: 1, category: "防御" },
-  { id: "d04", name: "回避", type: "defense", power: 7, mp: 0, category: "防御" },
-  { id: "d05", name: "見切り", type: "defense", power: 12, mp: 2, category: "防御" },
-  { id: "d06", name: "鉄壁の構え", type: "defense", power: 15, mp: 2, category: "防御" },
-  { id: "d07", name: "緊急回避", type: "defense", power: 9, mp: 1, category: "防御" },
-  { id: "d08", name: "金剛立ち", type: "defense", power: 20, mp: 3, category: "防御" },
-  { id: "d09", name: "受け流し", type: "defense", power: 11, mp: 1, category: "防御" },
-  { id: "d10", name: "クロスガード", type: "defense", power: 13, mp: 2, category: "防御" },
-  { id: "d11", name: "マジックバリア", type: "defense", power: 14, mp: 2, category: "防御" },
-  { id: "d12", name: "バックステップ", type: "defense", power: 6, mp: 0, category: "防御" },
-  { id: "d13", name: "身構える", type: "defense", power: 8, mp: 1, category: "防御" },
-  { id: "d14", name: "大盾の構え", type: "defense", power: 18, mp: 3, category: "防御" },
-  { id: "d15", name: "鏡の盾", type: "defense", power: 22, mp: 4, category: "防御" },
-  { id: "d16", name: "聖なるバリア", type: "defense", power: 25, mp: 4, category: "防御" },
-  { id: "d17", name: "影分身", type: "defense", power: 16, mp: 2, category: "防御" },
-  { id: "d18", name: "カウンターシールド", type: "defense", power: 17, mp: 3, category: "防御" },
-  { id: "d19", name: "アースウォール", type: "defense", power: 21, mp: 3, category: "防御" },
-  { id: "d20", name: "アイスシールド", type: "defense", power: 19, mp: 3, category: "防御" },
-  { id: "d21", name: "ファイアウォール", type: "defense", power: 18, mp: 3, category: "防御" },
-  { id: "d22", name: "風のベール", type: "defense", power: 15, mp: 2, category: "防御" },
-  { id: "d23", name: "光の護法陣", type: "defense", power: 28, mp: 5, category: "防御" },
-  { id: "d24", name: "暗黒の障壁", type: "defense", power: 26, mp: 5, category: "防御" },
-  { id: "d25", name: "仁王立ち", type: "defense", power: 30, mp: 6, category: "防御" },
-  { id: "d26", name: "不動の姿勢", type: "defense", power: 24, mp: 4, category: "防御" },
-  { id: "d27", name: "衝撃吸収", type: "defense", power: 12, mp: 2, category: "防御" },
-  { id: "d28", name: "煙幕", type: "defense", power: 10, mp: 1, category: "防御" },
-  { id: "d29", name: "鋼の肉体", type: "defense", power: 23, mp: 4, category: "防御" },
-  { id: "d30", name: "絶対防御", type: "defense", power: 35, mp: 8, category: "防御" },
-  { id: "d31", name: "エナジーシールド", type: "defense", power: 20, mp: 3, category: "防御" },
-  { id: "d32", name: "トールシールド", type: "defense", power: 27, mp: 5, category: "防御" },
-  { id: "d33", name: "スライディング回避", type: "defense", power: 7, mp: 0, category: "防御" },
-  { id: "d34", name: "武器受け", type: "defense", power: 14, mp: 2, category: "防御" },
-  { id: "d35", name: "結界破り対策", type: "defense", power: 29, mp: 5, category: "防御" },
-  { id: "d36", name: "イージスの盾", type: "defense", power: 32, mp: 7, category: "防御" },
-  { id: "d37", name: "プロテス", type: "defense", power: 16, mp: 2, category: "防御" },
-  { id: "d38", name: "マバリア", type: "defense", power: 17, mp: 3, category: "防御" },
-  { id: "d39", name: "神聖領域", type: "defense", power: 38, mp: 9, category: "防御" },
-  { id: "d40", name: "究極の防壁", type: "defense", power: 40, mp: 10, category: "防御" },
+  // --- 防御技 (最大防御値 35) ---
+  { id: "d01", name: "ガード", type: "defense", power: 5, mp: 1, category: "防御" },
+  { id: "d02", name: "パリィ", type: "defense", power: 8, mp: 2, category: "防御" },
+  { id: "d03", name: "盾受け", type: "defense", power: 10, mp: 2, category: "防御" },
+  { id: "d04", name: "回避", type: "defense", power: 7, mp: 1, category: "防御" },
+  { id: "d05", name: "見切り", type: "defense", power: 12, mp: 3, category: "防御" },
+  { id: "d06", name: "鉄壁の構え", type: "defense", power: 15, mp: 4, category: "防御" },
+  { id: "d07", name: "金剛立ち", type: "defense", power: 20, mp: 5, category: "防御" },
+  { id: "d08", name: "大盾の構え", type: "defense", power: 18, mp: 5, category: "防御" },
+  { id: "d09", name: "鏡の盾", type: "defense", power: 22, mp: 6, category: "防御" },
+  { id: "d10", name: "聖なるバリア", type: "defense", power: 25, mp: 7, category: "防御" },
+  { id: "d11", name: "光の護法陣", type: "defense", power: 28, mp: 7, category: "防御" },
+  { id: "d12", name: "仁王立ち", type: "defense", power: 30, mp: 8, category: "防御" },
+  { id: "d13", name: "絶対防御", type: "defense", power: 32, mp: 8, category: "防御" },
+  { id: "d14", name: "神聖領域", type: "defense", power: 34, mp: 9, category: "防御" },
+  { id: "d15", name: "究極の防壁", type: "defense", power: 35, mp: 9, category: "防御" },
 
-  // --- 魔法 (20種) ---
-  { id: "m01", name: "グランドクロス", type: "attack", power: 28, mp: 9, category: "魔法" },
-  { id: "m02", name: "野火炎", type: "attack", power: 15, mp: 4, category: "魔法" },
-  { id: "m03", name: "ギガフレア", type: "attack", power: 35, mp: 12, category: "魔法" },
-  { id: "m04", name: "サンダーボルト", type: "attack", power: 15, mp: 4, category: "魔法" },
-  { id: "m05", name: "ファイアボール", type: "attack", power: 8, mp: 2, category: "魔法" },
-  { id: "m06", name: "アイスコフィン", type: "attack", power: 18, mp: 5, category: "魔法" },
-  { id: "m07", name: "ウインドカッター", type: "attack", power: 14, mp: 4, category: "魔法" },
-  { id: "m08", name: "アースクエイク", type: "attack", power: 20, mp: 6, category: "魔法" },
-  { id: "m09", name: "ライトニングボルト", type: "attack", power: 16, mp: 5, category: "魔法" },
-  { id: "m10", name: "ウォーターブレス", type: "attack", power: 12, mp: 3, category: "魔法" },
-  { id: "m11", name: "メガファイア", type: "attack", power: 22, mp: 7, category: "魔法" },
-  { id: "m12", name: "フリーズ", type: "attack", power: 13, mp: 4, category: "魔法" },
-  { id: "m13", name: "ホーリー", type: "attack", power: 26, mp: 8, category: "魔法" },
-  { id: "m14", name: "ダークネス", type: "attack", power: 24, mp: 7, category: "魔法" },
-  { id: "m15", name: "ポイズン", type: "attack", power: 10, mp: 3, category: "魔法" },
-  { id: "m16", name: "ストーム", type: "attack", power: 19, mp: 6, category: "魔法" },
-  { id: "m17", name: "メテオシャワー", type: "attack", power: 30, mp: 10, category: "魔法" },
-  { id: "m18", name: "キュア", type: "heal", power: 15, mp: 4, category: "魔法" },
-  { id: "m19", name: "ハイキュア", type: "heal", power: 30, mp: 8, category: "魔法" },
-  { id: "m20", name: "ヒールポーション", type: "heal", power: 10, mp: 2, category: "魔法" }
+  // --- 魔法 / 回復 ---
+  { id: "m01", name: "ファイアボール", type: "attack", power: 12, mp: 3, category: "魔法" },
+  { id: "m02", name: "サンダーボルト", type: "attack", power: 18, mp: 4, category: "魔法" },
+  { id: "m03", name: "アイスコフィン", type: "attack", power: 22, mp: 5, category: "魔法" },
+  { id: "m04", name: "メガファイア", type: "attack", power: 28, mp: 7, category: "魔法" },
+  { id: "m05", name: "グランドクロス", type: "attack", power: 32, mp: 9, category: "魔法" },
+  { id: "m06", name: "メテオシャワー", type: "attack", power: 38, mp: 11, category: "魔法" },
+  { id: "m07", name: "ギガフレア", type: "attack", power: 45, mp: 14, category: "魔法" },
+  { id: "m08", name: "キュア", type: "heal", power: 15, mp: 4, category: "魔法" },
+  { id: "m09", name: "ハイキュア", type: "heal", power: 28, mp: 8, category: "魔法" }
 ];
 
 function getRandomCard() {
@@ -121,7 +78,6 @@ function getRandomCard() {
   return { ...card, instanceId: Math.random().toString(36).substring(2, 9) };
 }
 
-// 手札12枚生成
 function generateHand() {
   return Array.from({ length: 12 }, getRandomCard);
 }
@@ -133,8 +89,9 @@ function resolveAttack(game, room, defenderCard = null) {
   const pending = game.pendingAttack;
   if (!pending) return;
 
-  const attacker = game.players[pending.attacker];
-  const defenderNum = pending.attacker === 1 ? 2 : 1;
+  const attackerNum = pending.attacker;
+  const defenderNum = attackerNum === 1 ? 2 : 1;
+  const attacker = game.players[attackerNum];
   const defender = game.players[defenderNum];
 
   let blockPower = 0;
@@ -144,11 +101,11 @@ function resolveAttack(game, room, defenderCard = null) {
     blockPower = defenderCard.power;
     const finalDamage = Math.max(0, pending.card.power - blockPower);
     defender.hp = Math.max(0, defender.hp - finalDamage);
-    log = `⚔️ ${attacker.char} の「${pending.card.name}」！ 🛡️ ${defender.char} は「${defenderCard.name}」で防御！ 💥 ${defender.char} に ${finalDamage} ダメージ！ (軽減: ${blockPower})`;
+    log = `⚔️ ${attacker.char}「${pending.card.name}」 ➔ 🛡️ ${defender.char}「${defenderCard.name}」！ ${finalDamage} ダメージ (軽減:${blockPower})`;
   } else {
     const finalDamage = pending.card.power;
     defender.hp = Math.max(0, defender.hp - finalDamage);
-    log = `⚔️ ${attacker.char} の「${pending.card.name}」！ 💥 ${defender.char} に ${finalDamage} ダメージ！ (ノーガード)`;
+    log = `⚔️ ${attacker.char}「${pending.card.name}」直撃！ ${finalDamage} ダメージ！`;
   }
 
   game.pendingAttack = null;
@@ -156,8 +113,8 @@ function resolveAttack(game, room, defenderCard = null) {
   if (defender.hp <= 0) {
     if (game.timerInterval) clearInterval(game.timerInterval);
     io.to(room).emit("gameStateUpdate", {
-      log: log + ` 💀 ${defender.char} は倒れた！ ${attacker.char} の勝利！`,
-      winner: pending.attacker,
+      log: log + ` 💀 ${defender.char} 倒れた！ ${attacker.char} の勝利！`,
+      winner: attackerNum,
       players: game.players,
       phase: "END",
       pendingAttack: null
@@ -166,12 +123,12 @@ function resolveAttack(game, room, defenderCard = null) {
     return;
   }
 
-  // 攻撃解決後、防御側が新しい攻撃者となりターン交代 (MP+5回復)
+  // ターン交代 (ターン開始時にMP+3)
   game.phase = "ATTACK";
   game.currentTurn = defenderNum;
-  defender.mp += 5;
+  defender.mp += 3;
 
-  const fullLog = log + ` ➡️ ${defender.char} の攻撃ターン！ (MP+5回復 → 現在MP: ${defender.mp})`;
+  const fullLog = log + ` ➡️ ${defender.char} の攻撃ターン！ (MP+3)`;
 
   io.to(room).emit("gameStateUpdate", {
     log: fullLog,
@@ -196,18 +153,15 @@ function startTimer(game, room) {
     if (game.timer <= 0) {
       clearInterval(game.timerInterval);
       if (game.phase === "DEFENSE") {
-        // 防御ターンの時間切れはノーガードで即解決
         resolveAttack(game, room, null);
       } else {
-        // 攻撃ターンの時間切れはスキップ
-        const attacker = game.players[game.currentTurn];
         const nextTurn = game.currentTurn === 1 ? 2 : 1;
         game.currentTurn = nextTurn;
         const nextPlayer = game.players[nextTurn];
-        nextPlayer.mp += 5;
+        nextPlayer.mp += 3;
 
         io.to(room).emit("gameStateUpdate", {
-          log: `⏰ ${attacker.char} は時間切れ！ ➡️ ${nextPlayer.char} の攻撃ターン！ (MP+5回復 → 現在MP: ${nextPlayer.mp})`,
+          log: `⏰ 時間切れ！ ➡️ ${nextPlayer.char} の攻撃ターン！ (MP+3)`,
           players: game.players,
           currentTurn: game.currentTurn,
           phase: "ATTACK",
@@ -277,22 +231,28 @@ io.on("connection", (socket) => {
     const game = games[room];
     if (!game) return;
 
-    if (game.currentTurn !== playerNumber) return;
+    if (game.currentTurn !== playerNumber) {
+      socket.emit("errorMsg", "相手のターン中です！");
+      return;
+    }
 
     const player = game.players[playerNumber];
     const idx = player.hand.findIndex(c => c.instanceId === cardInstanceId);
-    if (idx === -1) return;
+    if (idx === -1) {
+      socket.emit("errorMsg", "カードが見つかりません。");
+      return;
+    }
 
     const card = player.hand[idx];
 
     if (player.mp < card.mp) {
-      socket.emit("errorMsg", `MPが足りません！ (必要MP: ${card.mp} / 現在MP: ${player.mp})`);
+      socket.emit("errorMsg", `MP不足！ (必要MP: ${card.mp} / 所持MP: ${player.mp})`);
       return;
     }
 
     if (game.phase === "ATTACK") {
       if (card.type === "defense") {
-        socket.emit("errorMsg", "攻撃ターンです！攻撃カードまたは回復魔法を選択してください。");
+        socket.emit("errorMsg", "攻撃ターンです！攻撃・魔法カードを選んでください。");
         return;
       }
 
@@ -305,10 +265,10 @@ io.on("connection", (socket) => {
         const opponentNumber = playerNumber === 1 ? 2 : 1;
         const opponent = game.players[opponentNumber];
         game.currentTurn = opponentNumber;
-        opponent.mp += 5;
+        opponent.mp += 3;
 
         io.to(room).emit("gameStateUpdate", {
-          log: `✨ ${player.char} は「${card.name}」で HP${card.power} 回復！ ➡️ ${opponent.char} の攻撃ターン！ (MP+5回復 → 現在MP: ${opponent.mp})`,
+          log: `✨ ${player.char} は「${card.name}」で HP${card.power} 回復！ ➡️ ${opponent.char} のターン！`,
           players: game.players,
           currentTurn: game.currentTurn,
           phase: "ATTACK",
@@ -316,13 +276,12 @@ io.on("connection", (socket) => {
         });
         startTimer(game, room);
       } else {
-        // 攻撃宣言 ➔ 相手の防御ターンへ
         const defenderNumber = playerNumber === 1 ? 2 : 1;
         const defender = game.players[defenderNumber];
 
         game.pendingAttack = { attacker: playerNumber, card: card };
         game.phase = "DEFENSE";
-        game.currentTurn = defenderNumber;
+        game.currentTurn = defenderNumber; // 防御側へターン変更
 
         io.to(room).emit("gameStateUpdate", {
           log: `⚔️ ${player.char} の「${card.name}」(威力:${card.power})！ 🛡️ ${defender.char} の防御ターン！`,
@@ -336,7 +295,7 @@ io.on("connection", (socket) => {
 
     } else if (game.phase === "DEFENSE") {
       if (card.type !== "defense") {
-        socket.emit("errorMsg", "防御ターンです！防御カードを選択するか「パス」してください。");
+        socket.emit("errorMsg", "防御ターンです！防御カードを選んでください。");
         return;
       }
 
@@ -356,19 +315,18 @@ io.on("connection", (socket) => {
     if (game.currentTurn !== playerNumber) return;
 
     if (game.phase === "DEFENSE") {
-      // 防御側が「パス」を押すとノーガードで攻撃を受ける
+      // 防御カードを使わず直接ダメージを受ける
       resolveAttack(game, room, null);
     } else {
-      // 攻撃側が「パス」を押すと攻撃スキップ
       const player = game.players[playerNumber];
       const opponentNumber = playerNumber === 1 ? 2 : 1;
       const opponent = game.players[opponentNumber];
 
       game.currentTurn = opponentNumber;
-      opponent.mp += 5;
+      opponent.mp += 3;
 
       io.to(room).emit("gameStateUpdate", {
-        log: `🍃 ${player.char} は攻撃をパスしました。 ➡️ ${opponent.char} の攻撃ターン！ (MP+5回復 → 現在MP: ${opponent.mp})`,
+        log: `🍃 ${player.char} パス。 ➡️ ${opponent.char} の攻撃ターン！`,
         players: game.players,
         currentTurn: game.currentTurn,
         phase: "ATTACK",
