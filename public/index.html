@@ -2,74 +2,187 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>対戦型バトル</title>
+  <title>対戦型ゲーム</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: sans-serif; background: #121216; color: #fff; padding: 15px; display: flex; flex-direction: column; align-items: center; }
-    h1 { font-size: 20px; color: #f1c40f; margin-bottom: 10px; }
-    #status-text { color: #00e5ff; margin-bottom: 15px; font-weight: bold; }
-    
-    .char-select-box { display: flex; gap: 15px; margin-top: 20px; }
-    .char-card { background: #1a1c23; border: 2px solid #f1c40f; border-radius: 10px; padding: 15px; width: 140px; text-align: center; cursor: pointer; transition: 0.2s; }
-    .char-card:hover { transform: scale(1.05); background: #252836; }
-
-    #game-container { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 15px; }
-    .status-board { display: flex; justify-content: space-between; gap: 10px; background: #1a1c23; border: 2px solid #2e3440; border-radius: 10px; padding: 15px; }
-    .player-box { flex: 1; text-align: center; }
-    .hp-bar-bg { background: #333; height: 20px; border-radius: 10px; overflow: hidden; position: relative; border: 1px solid #555; }
-    .hp-bar-fill { background: linear-gradient(90deg, #e74c3c, #2ecc71); height: 100%; width: 100%; transition: width 0.3s; }
-    .hp-text { position: absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; }
-    .status-badge { font-size: 11px; color: #f1c40f; min-height: 18px; margin-top: 4px; }
-
-    .turn-indicator { text-align: center; font-size: 16px; font-weight: bold; padding: 8px; border-radius: 5px; background: #252836; }
-    .my-turn { color: #2ecc71; border: 1px solid #2ecc71; }
-    .enemy-turn { color: #e74c3c; border: 1px solid #e74c3c; }
-
-    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
-    .card { background: #2a2d3d; border: 2px solid #4a4e69; border-radius: 8px; padding: 10px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; height: 110px; }
-    .card.disabled { opacity: 0.4; cursor: not-allowed; }
-    .cat-弱攻撃 { background: #34495e; color: #fff; font-size:10px; padding:2px 4px; border-radius:3px; width:fit-content; }
-    .cat-強攻撃 { background: #c0392b; color: #fff; font-size:10px; padding:2px 4px; border-radius:3px; width:fit-content; }
-    .cat-魔法 { background: #8e44ad; color: #fff; font-size:10px; padding:2px 4px; border-radius:3px; width:fit-content; }
-    .log-container { background: #000; border: 1px solid #333; padding: 10px; height: 120px; overflow-y: auto; font-size: 12px; }
+    body { background: #121212; color: #fff; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; }
+    h1 { color: #f39c12; margin-bottom: 10px; }
+    .screen { display: none; }
+    .active { display: block; }
+    .char-card { border: 2px solid #555; padding: 15px; margin: 10px; display: inline-block; cursor: pointer; border-radius: 8px; background: #222; width: 200px; }
+    .char-card:hover { border-color: #f39c12; background: #333; }
+    .status-box { display: flex; justify-content: space-around; background: #222; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+    .hp-bar { background: #444; height: 20px; border-radius: 10px; overflow: hidden; margin-top: 5px; }
+    .hp-fill { background: #2ecc71; height: 100%; width: 100%; transition: width 0.3s; }
+    .hand { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
+    .card { border: 1px solid #777; background: #2a2a2a; border-radius: 6px; padding: 10px; width: 120px; cursor: pointer; text-align: left; }
+    .card:hover { border-color: #f1c40f; transform: translateY(-3px); }
+    .card-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; }
+    .card-type { font-size: 11px; color: #aaa; }
+    .card-desc { font-size: 11px; margin-top: 5px; color: #ddd; }
+    #log { background: #000; border: 1px solid #333; padding: 10px; height: 120px; overflow-y: auto; text-align: left; font-size: 13px; margin-top: 15px; border-radius: 5px; color: #00ffcc; }
+    .waiting { font-size: 18px; color: #e74c3c; margin-top: 30px; }
   </style>
 </head>
 <body>
 
-  <h1>ゴッドフィールド × グラクロ風 バトル</h1>
-  <p id="status-text">接続中...</p>
+  <h1>対戦型ゲーム</h1>
 
-  <div id="char-select-container" style="display: none; text-align: center;">
-    <h3>使用するキャラクターを選択してください</h3>
-    <div class="char-select-box" id="char-cards"></div>
+  <!-- 待機画面 -->
+  <div id="screen-wait" class="screen active">
+    <p class="waiting" id="wait-msg">対戦相手を探しています...</p>
   </div>
 
-  <div id="game-container" style="display: none;">
-    <div class="status-board">
-      <div class="player-box">
-        <div id="my-name" style="font-weight:bold;">あなた</div>
-        <div class="hp-bar-bg"><div id="my-hp-bar" class="hp-bar-fill"></div><div id="my-hp-text" class="hp-text">100/100</div></div>
-        <div id="my-status-badge" class="status-badge"></div>
+  <!-- キャラ選択画面 -->
+  <div id="screen-select" class="screen">
+    <h2>キャラクターを選択してください</h2>
+    <div id="char-list"></div>
+    <p id="select-status" class="waiting" style="display:none;">相手のキャラ選択を待っています...</p>
+  </div>
+
+  <!-- 対戦画面 -->
+  <div id="screen-battle" class="screen">
+    <div class="status-box">
+      <div>
+        <h3 id="my-name">自分</h3>
+        <div class="hp-bar"><div id="my-hp-fill" class="hp-fill"></div></div>
+        <p id="my-hp-text">HP: 100/100</p>
+        <p id="my-status" style="font-size:12px; color:#f39c12;"></p>
       </div>
-      <div style="font-size:20px; color:#e74c3c; font-weight:bold; align-self:center;">VS</div>
-      <div class="player-box">
-        <div id="enemy-name" style="font-weight:bold;">相手</div>
-        <div class="hp-bar-bg"><div id="enemy-hp-bar" class="hp-bar-fill"></div><div id="enemy-hp-text" class="hp-text">100/100</div></div>
-        <div id="enemy-status-badge" class="status-badge"></div>
+      <div>
+        <h3 id="turn-display" style="color:#f1c40f;">対戦開始</h3>
+      </div>
+      <div>
+        <h3 id="enemy-name">相手</h3>
+        <div class="hp-bar"><div id="enemy-hp-fill" class="hp-fill" style="background:#e74c3c;"></div></div>
+        <p id="enemy-hp-text">HP: 100/100</p>
+        <p id="enemy-status" style="font-size:12px; color:#f39c12;"></p>
       </div>
     </div>
 
-    <div id="turn-indicator" class="turn-indicator">ターン確認中...</div>
+    <div id="log">対戦開始！</div>
 
-    <div style="background:#1a1c23; padding:15px; border-radius:10px;">
-      <div style="font-size:12px; color:#aaa; margin-bottom:10px;">手札 (8枚)</div>
-      <div id="cards-grid" class="cards-grid"></div>
-    </div>
-
-    <div class="log-container" id="log"></div>
+    <h3>あなたの手札</h3>
+    <div id="hand" class="hand"></div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="script.js"></script>
+  <script>
+    const socket = io();
+    let currentRoom = null;
+    let myPlayerNum = null;
+    let myHand = [];
+    let isMyTurn = false;
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    socket.on("status", (msg) => {
+      document.getElementById("wait-msg").innerText = msg;
+    });
+
+    socket.on("selectCharacterPhase", (data) => {
+      currentRoom = data.room;
+      myPlayerNum = data.playerNumber;
+      showScreen("screen-select");
+
+      const container = document.getElementById("char-list");
+      container.innerHTML = "";
+      Object.keys(data.characters).forEach(key => {
+        const c = data.characters[key];
+        const div = document.createElement("div");
+        div.className = "char-card";
+        div.innerHTML = `<h3>${c.name}</h3><p>HP: ${c.hp}</p><p style="font-size:12px;">${c.desc}</p>`;
+        div.onclick = () => {
+          socket.emit("selectCharacter", { room: currentRoom, playerNumber: myPlayerNum, charKey: key });
+          container.style.display = "none";
+          document.getElementById("select-status").style.display = "block";
+        };
+        container.appendChild(div);
+      });
+    });
+
+    socket.on("gameStart", (data) => {
+      showScreen("screen-battle");
+      updateState(data);
+    });
+
+    socket.on("gameStateUpdate", (data) => {
+      if (data.log) {
+        const logBox = document.getElementById("log");
+        logBox.innerHTML += `<div>${data.log}</div>`;
+        logBox.scrollTop = logBox.scrollHeight;
+      }
+
+      if (data.winner) {
+        if (data.winner === myPlayerNum) {
+          alert("🎉 勝利しました！");
+        } else {
+          alert("💀 敗北しました...");
+        }
+        location.reload();
+        return;
+      }
+
+      updateState(data);
+    });
+
+    function updateState(data) {
+      const me = data.players[myPlayerNum];
+      const enemy = data.players[myPlayerNum === 1 ? 2 : 1];
+
+      document.getElementById("my-name").innerText = me.char || "自分";
+      document.getElementById("my-hp-text").innerText = `HP: ${me.hp}/${me.maxHp}`;
+      document.getElementById("my-hp-fill").style.width = `${(me.hp / me.maxHp) * 100}%`;
+      document.getElementById("my-status").innerText = formatStatus(me.status);
+
+      document.getElementById("enemy-name").innerText = enemy.char || "相手";
+      document.getElementById("enemy-hp-text").innerText = `HP: ${enemy.hp}/${enemy.maxHp}`;
+      document.getElementById("enemy-hp-fill").style.width = `${(enemy.hp / enemy.maxHp) * 100}%`;
+      document.getElementById("enemy-status").innerText = formatStatus(enemy.status);
+
+      isMyTurn = (data.turn === myPlayerNum);
+      document.getElementById("turn-display").innerText = isMyTurn ? "あなたのターン" : "相手のターン...";
+
+      if (me.hand) {
+        myHand = me.hand;
+        renderHand();
+      }
+    }
+
+    function formatStatus(st) {
+      if (!st) return "";
+      let s = [];
+      if (st.burn > 0) s.push(`🔥やけど(${st.burn}T)`);
+      if (st.freeze > 0) s.push(`🧊こおり(${st.freeze}T)`);
+      if (st.confused > 0) s.push(`🌀混乱(${st.confused}T)`);
+      if (st.counter) s.push(`🛡️カウンター`);
+      if (st.magicUp) s.push(`✨魔力2倍`);
+      return s.join(" ");
+    }
+
+    function renderHand() {
+      const container = document.getElementById("hand");
+      container.innerHTML = "";
+      myHand.forEach(card => {
+        const div = document.createElement("div");
+        div.className = "card";
+        div.innerHTML = `
+          <div class="card-title">${card.name}</div>
+          <div class="card-type">[${card.category}]</div>
+          <div class="card-desc">${card.desc}</div>
+        `;
+        div.onclick = () => {
+          if (!isMyTurn) {
+            alert("相手のターンです！");
+            return;
+          }
+          socket.emit("playCard", { room: currentRoom, playerNumber: myPlayerNum, cardInstanceId: card.instanceId });
+        };
+        container.appendChild(div);
+      });
+    }
+  </script>
 </body>
 </html>
