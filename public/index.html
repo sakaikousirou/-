@@ -88,7 +88,10 @@
       showScreen("screen-select");
 
       const container = document.getElementById("char-list");
+      container.style.display = "block";
+      document.getElementById("select-status").style.display = "none";
       container.innerHTML = "";
+
       Object.keys(data.characters).forEach(key => {
         const c = data.characters[key];
         const div = document.createElement("div");
