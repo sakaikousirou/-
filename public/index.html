@@ -2,27 +2,72 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ゴッドフィールド風対戦プロトタイプ</title>
+  <title>対戦型バトル</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #222; color: #fff; }
-    .card-btn { padding: 10px 20px; margin: 5px; font-size: 16px; cursor: pointer; }
-    #log { background: #000; padding: 10px; height: 150px; overflow-y: scroll; border: 1px solid #555; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #121216; color: #fff; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+    h1 { font-size: 20px; color: #f1c40f; margin-bottom: 10px; }
+    #status-text { color: #00e5ff; margin-bottom: 15px; font-weight: bold; }
+    
+    .char-select-box { display: flex; gap: 15px; margin-top: 20px; }
+    .char-card { background: #1a1c23; border: 2px solid #f1c40f; border-radius: 10px; padding: 15px; width: 140px; text-align: center; cursor: pointer; transition: 0.2s; }
+    .char-card:hover { transform: scale(1.05); background: #252836; }
+
+    #game-container { width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 15px; }
+    .status-board { display: flex; justify-content: space-between; gap: 10px; background: #1a1c23; border: 2px solid #2e3440; border-radius: 10px; padding: 15px; }
+    .player-box { flex: 1; text-align: center; }
+    .hp-bar-bg { background: #333; height: 20px; border-radius: 10px; overflow: hidden; position: relative; border: 1px solid #555; }
+    .hp-bar-fill { background: linear-gradient(90deg, #e74c3c, #2ecc71); height: 100%; width: 100%; transition: width 0.3s; }
+    .hp-text { position: absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; }
+    .status-badge { font-size: 11px; color: #f1c40f; min-height: 18px; margin-top: 4px; }
+
+    .turn-indicator { text-align: center; font-size: 16px; font-weight: bold; padding: 8px; border-radius: 5px; background: #252836; }
+    .my-turn { color: #2ecc71; border: 1px solid #2ecc71; }
+    .enemy-turn { color: #e74c3c; border: 1px solid #e74c3c; }
+
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+    .card { background: #2a2d3d; border: 2px solid #4a4e69; border-radius: 8px; padding: 10px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; height: 110px; }
+    .card.disabled { opacity: 0.4; cursor: not-allowed; }
+    .cat-弱攻撃 { background: #34495e; color: #fff; font-size:10px; padding:2px 4px; border-radius:3px; width:fit-content; }
+    .cat-強攻撃 { background: #c0392b; color: #fff; font-size:10px; padding:2px 4px; border-radius:3px; width:fit-content; }
+    .cat-魔法 { background: #8e44ad; color: #fff; font-size:10px; padding:2px 4px; border-radius:3px; width:fit-content; }
+    .log-container { background: #000; border: 1px solid #333; padding: 10px; height: 120px; overflow-y: auto; font-size: 12px; }
   </style>
 </head>
 <body>
-  <h1>2人対戦テスト</h1>
+
+  <h1>ゴッドフィールド × グラクロ風 バトル</h1>
   <p id="status-text">接続中...</p>
-  
-  <div id="game-area" style="display: none;">
-    <h3>手札（アクション選択）</h3>
-    <button class="card-btn" onclick="sendAction('弱攻撃')">弱攻撃</button>
-    <button class="card-btn" onclick="sendAction('強攻撃')">強攻撃</button>
-    <button class="card-btn" onclick="sendAction('防御')">防御</button>
-    <button class="card-btn" onclick="sendAction('ランダム魔法')">ランダム魔法</button>
+
+  <div id="char-select-container" style="display: none; text-align: center;">
+    <h3>使用するキャラクターを選択してください</h3>
+    <div class="char-select-box" id="char-cards"></div>
   </div>
 
-  <h3>対戦ログ</h3>
-  <div id="log"></div>
+  <div id="game-container" style="display: none;">
+    <div class="status-board">
+      <div class="player-box">
+        <div id="my-name" style="font-weight:bold;">あなた</div>
+        <div class="hp-bar-bg"><div id="my-hp-bar" class="hp-bar-fill"></div><div id="my-hp-text" class="hp-text">100/100</div></div>
+        <div id="my-status-badge" class="status-badge"></div>
+      </div>
+      <div style="font-size:20px; color:#e74c3c; font-weight:bold; align-self:center;">VS</div>
+      <div class="player-box">
+        <div id="enemy-name" style="font-weight:bold;">相手</div>
+        <div class="hp-bar-bg"><div id="enemy-hp-bar" class="hp-bar-fill"></div><div id="enemy-hp-text" class="hp-text">100/100</div></div>
+        <div id="enemy-status-badge" class="status-badge"></div>
+      </div>
+    </div>
+
+    <div id="turn-indicator" class="turn-indicator">ターン確認中...</div>
+
+    <div style="background:#1a1c23; padding:15px; border-radius:10px;">
+      <div style="font-size:12px; color:#aaa; margin-bottom:10px;">手札 (8枚)</div>
+      <div id="cards-grid" class="cards-grid"></div>
+    </div>
+
+    <div class="log-container" id="log"></div>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="script.js"></script>
