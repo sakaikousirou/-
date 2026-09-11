@@ -1,73 +1,173 @@
-/* --- 防御ターンの光るエフェクト（青～水色） --- */
-.card.glow-defense {
-  box-shadow: 0 0 18px #00d2ff, 0 0 8px #00d2ff !important;
-  border: 2px solid #00f0ff !important;
-  animation: glowPulseBlue 1.2s infinite alternate;
-}
-
-@keyframes glowPulseBlue {
-  0% { transform: translateY(0); box-shadow: 0 0 10px #00d2ff; }
-  100% { transform: translateY(-6px); box-shadow: 0 0 25px #00ffff; }
-}
-
-/* --- 攻撃ターンの光るエフェクト（赤～金） --- */
-.card.glow-attack {
-  box-shadow: 0 0 18px #ff4500, 0 0 8px #ff4500 !important;
-  border: 2px solid #ffaa00 !important;
-  animation: glowPulseRed 1.2s infinite alternate;
-}
-
-@keyframes glowPulseRed {
-  0% { transform: translateY(0); box-shadow: 0 0 10px #ff4500; }
-  100% { transform: translateY(-6px); box-shadow: 0 0 25px #ffcc00; }
-}
-
-/* --- 画面中央の相手攻撃警告バナー --- */
-.attack-alert-banner {
-  position: fixed;
-  top: 45%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(15, 10, 20, 0.92);
-  border: 3px solid #ff3344;
-  box-shadow: 0 0 35px rgba(255, 50, 50, 0.8);
-  border-radius: 16px;
-  padding: 20px 40px;
+body {
+  background-color: #121216;
+  color: #fff;
+  font-family: sans-serif;
   text-align: center;
-  z-index: 9999;
-  color: #ffffff;
-  pointer-events: none;
-  animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  margin: 0;
+  padding: 10px;
 }
 
-@keyframes popIn {
-  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
-  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+/* キャラ選択画面 */
+#char-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  max-width: 900px;
+  margin: 20px auto;
 }
 
-.alert-title {
-  font-size: 18px;
-  color: #ff5555;
+.char-card {
+  background: #222;
+  border: 2px solid #555;
+  border-radius: 8px;
+  padding: 12px;
+  width: 150px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.char-card:hover {
+  border-color: #ffcc00;
+  transform: translateY(-4px);
+}
+
+/* 対戦画面 */
+.battle-field {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin: 15px 0;
+}
+
+.player-box {
+  background: #1e1e24;
+  border: 2px solid #444;
+  border-radius: 10px;
+  padding: 12px;
+  width: 200px;
+  position: relative;
+}
+
+.badge {
+  color: #00e5ff;
   font-weight: bold;
-  letter-spacing: 2px;
+  font-size: 14px;
 }
 
-.alert-card-name {
+.badge.enemy {
+  color: #ff5252;
+}
+
+.vs-text {
   font-size: 32px;
   font-weight: 900;
-  color: #ffffff;
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
-  margin: 8px 0;
+  color: #ffaa00;
 }
 
-.alert-power-box {
-  margin-top: 10px;
-  font-size: 36px;
-  font-weight: bold;
-  color: #ffcc00;
-  background: rgba(255, 204, 0, 0.15);
-  border: 1px solid #ffcc00;
-  padding: 6px 24px;
-  border-radius: 8px;
-  display: inline-block;
+/* 手札 */
+#hand-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 900px;
+  margin: 10px auto;
 }
+
+.card {
+  background: #2a2a32;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 8px;
+  width: 120px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s;
+}
+
+.card:hover {
+  transform: scale(1.05);
+}
+
+/* 攻撃ターンの光るカード (赤/金) */
+.card.glow-attack {
+  border: 2px solid #ff9900 !important;
+  box-shadow: 0 0 15px #ff6600;
+  animation: pulseRed 1s infinite alternate;
+}
+
+@keyframes pulseRed {
+  0% { box-shadow: 0 0 8px #ff6600; }
+  100% { box-shadow: 0 0 20px #ffcc00; }
+}
+
+/* 防御ターンの光るカード (青/水色) */
+.card.glow-defense {
+  border: 2px solid #00d2ff !important;
+  box-shadow: 0 0 15px #00d2ff;
+  animation: pulseBlue 1s infinite alternate;
+}
+
+@keyframes pulseBlue {
+  0% { box-shadow: 0 0 8px #00aaff; }
+  100% { box-shadow: 0 0 20px #00ffff; }
+}
+
+/* 画面中央の攻撃予告バナー */
+.attack-alert-banner {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(10, 8, 16, 0.95);
+  border: 3px solid #ff3344;
+  box-shadow: 0 0 40px rgba(255, 50, 50, 0.8);
+  border-radius: 16px;
+  padding: 20px 40px;
+  z-index: 999;
+}
+
+.alert-title { color: #ff5555; font-size: 18px; font-weight: bold; }
+.alert-card-name { font-size: 30px; font-weight: bold; margin: 6px 0; }
+.alert-power-box { font-size: 34px; color: #ffcc00; font-weight: bold; }
+.alert-subtext { font-size: 13px; color: #aaa; margin-top: 6px; }
+
+/* トースト通知 */
+#toast-msg {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ff3344;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 6px;
+  display: none;
+  z-index: 1000;
+  font-weight: bold;
+}
+
+#log-box {
+  background: #000;
+  border: 1px solid #333;
+  padding: 10px;
+  max-width: 800px;
+  margin: 15px auto;
+  height: 80px;
+  overflow-y: auto;
+  text-align: left;
+  font-size: 14px;
+}
+
+#pass-btn {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: #444;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#pass-btn:hover { background: #666; }
