@@ -8,14 +8,12 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-// キャラクター定義
 const CHARACTERS = {
   suzuki: { name: "鈴木ゴンザレス", hp: 130, maxHp: 130, desc: "圧倒的タフネスを誇る謎の男" },
   wizard: { name: "ウィザード", hp: 80, maxHp: 80, desc: "低HP・高火力魔法型" },
   rogue: { name: "ローグ", hp: 100, maxHp: 100, desc: "標準バランス型" }
 };
 
-// 全80種類カードマスター（新効果付き）
 const CARD_MASTER = [
   // 【弱攻撃 15種】
   { id: "w01", name: "ジャブ", type: "attack", power: 5, category: "弱攻撃", desc: "素早いパンチ(威力5)" },
@@ -52,7 +50,6 @@ const CARD_MASTER = [
   { id: "s15", name: "カウンターアタック", type: "counter", power: 0, category: "強攻撃", desc: "次の物理攻撃を跳ね返す" },
 
   // 【魔法 50種】
-  // 攻撃・状態異常魔法 (40種)
   { id: "m01", name: "グランドクロス", type: "attack", power: 28, category: "魔法", desc: "聖なる十字の閃光(威力28)" },
   { id: "m02", name: "獄炎波", type: "status_burn", power: 15, category: "魔法", desc: "威15 + 相手をやけど(3T)" },
   { id: "m03", name: "ギガフレア", type: "attack", power: 35, category: "魔法", desc: "超絶大魔法(威力35)" },
@@ -93,8 +90,6 @@ const CARD_MASTER = [
   { id: "m38", name: "ブラッドサック", type: "attack", power: 15, category: "魔法", desc: "血を吸い取る(威力15)" },
   { id: "m39", name: "破滅の輪光", type: "attack", power: 34, category: "魔法", desc: "滅びの環(威力34)" },
   { id: "m40", name: "魔力覚醒", type: "buff_magic", power: 0, category: "魔法", desc: "次の魔法威力2倍" },
-
-  // 回復魔法 (10種)
   { id: "m41", name: "ヒール", type: "heal", power: 10, category: "魔法", desc: "HPを10回復" },
   { id: "m42", name: "ハイヒール", type: "heal", power: 20, category: "魔法", desc: "HPを20回復" },
   { id: "m43", name: "フルヒール", type: "heal", power: 40, category: "魔法", desc: "HPを40超回復" },
@@ -127,7 +122,6 @@ function startTurn(game, room, nextPlayerNum) {
   const player = game.players[nextPlayerNum];
   let logMsg = "";
 
-  // やけどダメージ処理（ターン開始時）
   if (player.status.burn > 0) {
     player.hp = Math.max(0, player.hp - 6);
     player.status.burn--;
@@ -141,7 +135,6 @@ function startTurn(game, room, nextPlayerNum) {
     return;
   }
 
-  // こおり（スキップ）処理
   if (player.status.freeze > 0) {
     player.status.freeze--;
     logMsg += `🧊 ${player.char} は凍りついて動けない！ ターンがスキップされます。`;
@@ -176,7 +169,8 @@ io.on("connection", (socket) => {
       turn: 1
     };
 
-    io.to(roomName).emit("selectCharacterPhase", { room: roomName, characters: CHARACTERS });
+    p1.emit("selectCharacterPhase", { room: roomName, playerNumber: 1, characters: CHARACTERS });
+    p2.emit("selectCharacterPhase", { room: roomName, playerNumber: 2, characters: CHARACTERS });
   }
 
   socket.on("selectCharacter", (data) => {
@@ -193,8 +187,8 @@ io.on("connection", (socket) => {
     if (game.players[1].ready && game.players[2].ready) {
       io.to(room).emit("gameStart", {
         room,
-        p1State: game.players[1],
-        p2State: game.players[2]
+        players: game.players,
+        turn: 1
       });
     }
   });
@@ -218,7 +212,6 @@ io.on("connection", (socket) => {
     let targetIsSelf = false;
     let log = "";
 
-    // 混乱チェック（50%で自分を攻撃）
     if (me.status.confused > 0) {
       me.status.confused--;
       if (Math.random() < 0.5) {
@@ -228,7 +221,6 @@ io.on("connection", (socket) => {
       }
     }
 
-    // 魔法ブーストチェック
     let power = card.power;
     if (card.category === "魔法" && me.status.magicUp) {
       power *= 2;
@@ -236,7 +228,6 @@ io.on("connection", (socket) => {
       log += `✨【魔力覚醒】魔法威力2倍！ `;
     }
 
-    // カード効果処理
     if (card.type === "attack" || card.type === "double_attack") {
       const hits = card.type === "double_attack" ? 2 : 1;
       const totalDmg = power * hits;
@@ -272,7 +263,6 @@ io.on("connection", (socket) => {
       log += `💖 ${me.char} の「${card.name}」！ HPが ${power} 回復！`;
     }
 
-    // 勝利判定
     if (enemy.hp <= 0) {
       io.to(room).emit("gameStateUpdate", { log, winner: playerNumber, players: game.players, turn: 0 });
       delete games[room];
