@@ -1,0 +1,73 @@
+/* --- 防御ターンの光るエフェクト（青～水色） --- */
+.card.glow-defense {
+  box-shadow: 0 0 18px #00d2ff, 0 0 8px #00d2ff !important;
+  border: 2px solid #00f0ff !important;
+  animation: glowPulseBlue 1.2s infinite alternate;
+}
+
+@keyframes glowPulseBlue {
+  0% { transform: translateY(0); box-shadow: 0 0 10px #00d2ff; }
+  100% { transform: translateY(-6px); box-shadow: 0 0 25px #00ffff; }
+}
+
+/* --- 攻撃ターンの光るエフェクト（赤～金） --- */
+.card.glow-attack {
+  box-shadow: 0 0 18px #ff4500, 0 0 8px #ff4500 !important;
+  border: 2px solid #ffaa00 !important;
+  animation: glowPulseRed 1.2s infinite alternate;
+}
+
+@keyframes glowPulseRed {
+  0% { transform: translateY(0); box-shadow: 0 0 10px #ff4500; }
+  100% { transform: translateY(-6px); box-shadow: 0 0 25px #ffcc00; }
+}
+
+/* --- 画面中央の相手攻撃警告バナー --- */
+.attack-alert-banner {
+  position: fixed;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(15, 10, 20, 0.92);
+  border: 3px solid #ff3344;
+  box-shadow: 0 0 35px rgba(255, 50, 50, 0.8);
+  border-radius: 16px;
+  padding: 20px 40px;
+  text-align: center;
+  z-index: 9999;
+  color: #ffffff;
+  pointer-events: none;
+  animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.alert-title {
+  font-size: 18px;
+  color: #ff5555;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.alert-card-name {
+  font-size: 32px;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+  margin: 8px 0;
+}
+
+.alert-power-box {
+  margin-top: 10px;
+  font-size: 36px;
+  font-weight: bold;
+  color: #ffcc00;
+  background: rgba(255, 204, 0, 0.15);
+  border: 1px solid #ffcc00;
+  padding: 6px 24px;
+  border-radius: 8px;
+  display: inline-block;
+}
