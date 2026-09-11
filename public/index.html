@@ -3,533 +3,157 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>対戦型カードバトル</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet">
+  <title>対戦型ゲーム</title>
   <style>
-    :root {
-      --bg-dark: #0a0c10;
-      --card-bg: rgba(22, 27, 34, 0.85);
-      --primary-neon: #00f0ff;
-      --accent-red: #ff0055;
-      --accent-green: #00ff88;
-      --accent-yellow: #ffcc00;
-      --accent-purple: #b026ff;
-    }
-
-    * { box-sizing: border-box; user-select: none; }
     body {
-      background: radial-gradient(circle at center, #1a1f2c 0%, #080a0f 100%);
-      color: #fff;
-      font-family: 'Noto Sans JP', sans-serif;
-      margin: 0;
-      padding: 10px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow-x: hidden;
-    }
-
-    h1 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 26px;
-      letter-spacing: 3px;
-      color: var(--primary-neon);
-      text-shadow: 0 0 10px rgba(0,240,255,0.5);
-      margin: 5px 0 15px 0;
-    }
-
-    .screen { display: none; width: 100%; max-width: 900px; }
-    .active { display: flex; flex-direction: column; align-items: center; }
-
-    /* 待機・キャラ選択 */
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      padding: 25px;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      background-color: #121212;
+      color: #ffffff;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
       text-align: center;
-      width: 100%;
+      margin: 0;
+      padding: 15px;
     }
-
-    .char-grid { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 20px; }
+    h1 { color: #ff9800; margin-bottom: 5px; }
+    #status-msg { font-size: 1.2rem; color: #00e676; margin: 10px 0; }
+    
+    /* キャラ選択エリア */
+    .char-select-container {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
     .char-card {
-      background: var(--card-bg);
-      border: 2px solid rgba(255,255,255,0.15);
-      border-radius: 12px;
-      padding: 20px;
-      width: 220px;
+      background: #1e1e1e;
+      border: 2px solid #ff9800;
+      border-radius: 10px;
+      padding: 15px;
+      width: 160px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: transform 0.2s, border-color 0.2s;
     }
     .char-card:hover {
-      border-color: var(--primary-neon);
-      transform: translateY(-8px);
-      box-shadow: 0 0 20px rgba(0,240,255,0.4);
+      transform: scale(1.05);
+      border-color: #00e676;
+    }
+    canvas.pixel-art {
+      image-rendering: pixelated;
+      background: #000;
+      border-radius: 5px;
     }
 
-    /* 対戦ヘッダー＆タイマー */
-    .battle-header {
-      width: 100%;
+    /* バトル画面 */
+    #battle-screen { display: none; }
+    .battle-field {
       display: flex;
-      justify-content: space-between;
+      justify-content: space-around;
       align-items: center;
-      background: rgba(0,0,0,0.4);
-      padding: 12px 20px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.1);
-      margin-bottom: 15px;
-    }
-
-    .timer-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-    .timer-circle {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 28px;
-      font-weight: 900;
-      color: var(--accent-yellow);
-      text-shadow: 0 0 10px var(--accent-yellow);
-    }
-
-    .phase-badge {
-      font-size: 18px;
-      font-weight: 900;
-      padding: 6px 16px;
-      border-radius: 20px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .phase-attack { background: var(--accent-red); box-shadow: 0 0 15px var(--accent-red); }
-    .phase-defend { background: var(--primary-neon); color: #000; box-shadow: 0 0 15px var(--primary-neon); }
-    .phase-wait { background: #555; }
-
-    /* プレイヤー対峙ゾーン */
-    .versus-container {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      gap: 15px;
-      margin-bottom: 15px;
-    }
-
-    .player-box {
-      flex: 1;
-      background: var(--card-bg);
-      border: 2px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
+      margin: 15px 0;
+      background: #1e1e1e;
       padding: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      position: relative;
-    }
-    .player-box.active-turn {
-      border-color: var(--primary-neon);
-      box-shadow: 0 0 15px rgba(0,240,255,0.3);
-    }
-
-    .hp-bar-outer {
-      background: rgba(0,0,0,0.6);
-      height: 22px;
-      border-radius: 11px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.2);
-      position: relative;
-    }
-    .hp-bar-inner {
-      height: 100%;
-      background: linear-gradient(90deg, #00ff88, #2ecc71);
-      width: 100%;
-      transition: width 0.4s ease-in-out;
-    }
-    .hp-text {
-      position: absolute;
-      width: 100%;
-      text-align: center;
-      top: 2px;
-      font-size: 12px;
-      font-weight: bold;
-      text-shadow: 1px 1px 2px #000;
-    }
-
-    .status-badges { display: flex; gap: 5px; flex-wrap: wrap; min-height: 22px; }
-    .badge { font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.15); }
-
-    /* 中央フィールド＆ログ */
-    .field-center {
-      width: 100%;
-      display: flex;
-      gap: 15px;
-      margin-bottom: 15px;
-      height: 140px;
-    }
-
-    .attack-card-display {
-      flex: 1;
-      background: rgba(0,0,0,0.5);
-      border: 2px dashed rgba(255,255,255,0.2);
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 10px;
-    }
-
-    .log-box {
-      flex: 1.5;
-      background: rgba(0,0,0,0.7);
-      border: 1px solid rgba(0,240,255,0.3);
-      border-radius: 12px;
-      padding: 10px;
-      overflow-y: auto;
-      font-size: 12px;
-      color: #00ffcc;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    /* アクションエリア＆手札 */
-    .controls-bar {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .btn-pass {
-      background: linear-gradient(135deg, #444, #222);
-      color: #fff;
-      border: 1px solid #777;
-      padding: 10px 24px;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-pass:hover { background: #555; transform: scale(1.05); }
-
-    .hand-container {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      padding-bottom: 20px;
-    }
-
-    .card {
-      width: 115px;
-      height: 155px;
-      background: var(--card-bg);
-      border: 2px solid #444;
       border-radius: 10px;
-      padding: 8px;
+    }
+    .player-box { width: 45%; }
+    .hp-bar, .mp-bar {
+      height: 12px;
+      background: #444;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 4px 0;
+    }
+    .hp-fill { height: 100%; background: #ff5252; width: 100%; transition: width 0.3s; }
+    .mp-fill { height: 100%; background: #448aff; width: 100%; transition: width 0.3s; }
+
+    /* 手札エリア */
+    .hand-container {
       display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+    .card-item {
+      background: #2a2a2a;
+      border: 2px solid #555;
+      border-radius: 8px;
+      padding: 8px;
+      width: 100px;
+      font-size: 0.8rem;
       cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      position: relative;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      transition: 0.2s;
     }
-    .card:hover {
-      transform: translateY(-12px) scale(1.06);
-      z-index: 10;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.8);
-    }
+    .card-item:hover { border-color: #ff9800; transform: translateY(-4px); }
+    .card-item.disabled { opacity: 0.4; cursor: not-allowed; }
+    .card-cat { font-size: 0.7rem; color: #ffb74d; }
+    .card-name { font-weight: bold; margin: 3px 0; }
+    .card-cost { color: #448aff; font-weight: bold; }
 
-    /* カード種別色コード */
-    .card[data-cat="弱攻撃"] { border-color: #ff5555; }
-    .card[data-cat="強攻撃"] { border-color: #ff0055; box-shadow: 0 0 8px rgba(ff,0,85,0.4); }
-    .card[data-cat="魔法"] { border-color: #b026ff; }
-    .card[data-cat="防御"] { border-color: #00f0ff; }
-
-    .card-header { font-size: 12px; font-weight: bold; line-height: 1.2; }
-    .card-badge { font-size: 9px; opacity: 0.8; margin-top: 2px; }
-    .card-power {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 22px;
-      font-weight: 900;
-      text-align: center;
-      margin: 5px 0;
+    #log-box {
+      background: #000;
+      border: 1px solid #333;
+      height: 80px;
+      overflow-y: auto;
+      padding: 8px;
+      margin-top: 15px;
+      font-size: 0.9rem;
+      text-align: left;
     }
-    .card-desc { font-size: 10px; color: #ccc; line-height: 1.2; }
+    button.pass-btn {
+      background: #757575;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 
-  <h1>CARD BATTLE ONLINE</h1>
+  <h1>対戦型ゲーム</h1>
+  <div id="status-msg">対戦相手を待っています...</div>
 
-  <!-- 待機画面 -->
-  <div id="screen-wait" class="screen active">
-    <div class="glass-panel">
-      <h2 style="color: var(--accent-yellow);">MATCHMAKING</h2>
-      <p id="wait-msg">対戦相手を探しています...</p>
-    </div>
+  <div id="select-screen" style="display:none;">
+    <h3>キャラクターを選択してください</h3>
+    <div class="char-select-container" id="char-list"></div>
   </div>
 
-  <!-- キャラ選択画面 -->
-  <div id="screen-select" class="screen">
-    <div class="glass-panel">
-      <h2>SELECT YOUR HERO</h2>
-      <div id="char-list" class="char-grid"></div>
-      <p id="select-status" style="display:none; color: var(--accent-yellow); margin-top: 20px;">相手の選択を待っています...</p>
-    </div>
-  </div>
+  <div id="battle-screen">
+    <div id="timer-display" style="font-size: 1.3rem; color: #ffeb3b;">残り時間: 20秒</div>
 
-  <!-- 対戦画面 -->
-  <div id="screen-battle" class="screen">
-    <div class="battle-header">
-      <div id="phase-tag" class="phase-badge phase-attack">攻撃フェーズ</div>
-      <div class="timer-box">
-        <div style="font-size: 10px; color: #aaa;">REST TIME</div>
-        <div id="timer-display" class="timer-circle">15</div>
-      </div>
-      <div style="font-size: 12px; color: #aaa;" id="round-info">対戦中</div>
-    </div>
-
-    <!-- プレイヤー対峙 -->
-    <div class="versus-container">
-      <!-- 自分のステータス -->
-      <div id="p-me" class="player-box">
-        <div style="display: flex; justify-content: space-between;">
-          <span id="my-name" style="font-weight: bold; color: var(--primary-neon);">自分</span>
-          <span id="my-role" style="font-size: 12px; color: #aaa;">[攻撃側]</span>
-        </div>
-        <div class="hp-bar-outer">
-          <div id="my-hp-fill" class="hp-bar-inner"></div>
-          <div id="my-hp-text" class="hp-text">100/100</div>
-        </div>
-        <div id="my-status" class="status-badges"></div>
+    <div class="battle-field">
+      <div class="player-box" id="p1-box">
+        <canvas id="p1-canvas" class="pixel-art" width="80" height="80"></canvas>
+        <div id="p1-name" style="font-weight:bold;">---</div>
+        <div>HP: <span id="p1-hp">--</span></div>
+        <div class="hp-bar"><div id="p1-hp-fill" class="hp-fill"></div></div>
+        <div>MP: <span id="p1-mp">--</span></div>
+        <div class="mp-bar"><div id="p1-mp-fill" class="mp-fill"></div></div>
       </div>
 
-      <!-- 相手のステータス -->
-      <div id="p-enemy" class="player-box">
-        <div style="display: flex; justify-content: space-between;">
-          <span id="enemy-name" style="font-weight: bold; color: var(--accent-red);">相手</span>
-          <span id="enemy-role" style="font-size: 12px; color: #aaa;">[防御側]</span>
-        </div>
-        <div class="hp-bar-outer">
-          <div id="enemy-hp-fill" class="hp-bar-inner" style="background: linear-gradient(90deg, #ff5555, #ff0055);"></div>
-          <div id="enemy-hp-text" class="hp-text">100/100</div>
-        </div>
-        <div id="enemy-status" class="status-badges"></div>
+      <div style="font-size: 1.5rem; font-weight: bold; color: #ff9800;">VS</div>
+
+      <div class="player-box" id="p2-box">
+        <canvas id="p2-canvas" class="pixel-art" width="80" height="80"></canvas>
+        <div id="p2-name" style="font-weight:bold;">---</div>
+        <div>HP: <span id="p2-hp">--</span></div>
+        <div class="hp-bar"><div id="p2-hp-fill" class="hp-fill"></div></div>
+        <div>MP: <span id="p2-mp">--</span></div>
+        <div class="mp-bar"><div id="p2-mp-fill" class="mp-fill"></div></div>
       </div>
     </div>
 
-    <!-- 中央フィールド (攻撃技の展示 & ログ) -->
-    <div class="field-center">
-      <div class="attack-card-display">
-        <div style="font-size: 11px; color: #888; margin-bottom: 4px;">INCOMING ATTACK</div>
-        <div id="incoming-attack-title" style="font-size: 16px; font-weight: bold; color: var(--accent-yellow);">なし</div>
-        <div id="incoming-attack-power" style="font-size: 20px; font-family: 'Orbitron'; color: var(--accent-red);"></div>
-      </div>
-      <div id="log" class="log-box">
-        <div>⚔️ バトル開始！</div>
-      </div>
-    </div>
+    <h4>あなたの手札 (技を選ぶと攻撃)</h4>
+    <div class="hand-container" id="hand-list"></div>
+    <button class="pass-btn" onclick="passTurn()">パスする</button>
 
-    <!-- 操作バー -->
-    <div class="controls-bar">
-      <div style="font-weight: bold; font-size: 14px;" id="action-hint">あなたの手札を選んでください</div>
-      <button id="btn-pass" class="btn-pass" onclick="handlePass()">パス (スキップ/ガードなし)</button>
-    </div>
-
-    <!-- 手札 -->
-    <div id="hand" class="hand-container"></div>
+    <div id="log-box"></div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script>
-    const socket = io();
-    let currentRoom = null;
-    let myPlayerNum = null;
-    let myHand = [];
-    let currentGameState = null;
-
-    function showScreen(id) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-    }
-
-    socket.on("status", (msg) => {
-      document.getElementById("wait-msg").innerText = msg;
-    });
-
-    socket.on("selectCharacterPhase", (data) => {
-      currentRoom = data.room;
-      myPlayerNum = data.playerNumber;
-      showScreen("screen-select");
-
-      const container = document.getElementById("char-list");
-      container.style.display = "flex";
-      document.getElementById("select-status").style.display = "none";
-      container.innerHTML = "";
-
-      Object.keys(data.characters).forEach(key => {
-        const c = data.characters[key];
-        const div = document.createElement("div");
-        div.className = "char-card";
-        div.innerHTML = `<h3 style="color:var(--primary-neon); margin:0 0 10px 0;">${c.name}</h3><p style="font-size:18px; font-weight:bold;">HP: ${c.hp}</p><p style="font-size:12px; color:#aaa;">${c.desc}</p>`;
-        div.onclick = () => {
-          socket.emit("selectCharacter", { room: currentRoom, playerNumber: myPlayerNum, charKey: key });
-          container.style.display = "none";
-          document.getElementById("select-status").style.display = "block";
-        };
-        container.appendChild(div);
-      });
-    });
-
-    socket.on("gameStart", (data) => {
-      showScreen("screen-battle");
-      updateState(data);
-    });
-
-    socket.on("timerUpdate", (seconds) => {
-      const display = document.getElementById("timer-display");
-      display.innerText = seconds;
-      if (seconds <= 5) {
-        display.style.color = "var(--accent-red)";
-      } else {
-        display.style.color = "var(--accent-yellow)";
-      }
-    });
-
-    socket.on("gameStateUpdate", (data) => {
-      if (data.log) {
-        const logBox = document.getElementById("log");
-        logBox.innerHTML += `<div>${data.log}</div>`;
-        logBox.scrollTop = logBox.scrollHeight;
-      }
-
-      if (data.winner) {
-        if (data.winner === myPlayerNum) {
-          alert("🎉 勝利しました！");
-        } else {
-          alert("💀 敗北しました...");
-        }
-        location.reload();
-        return;
-      }
-
-      updateState(data);
-    });
-
-    function updateState(data) {
-      currentGameState = data;
-      const me = data.players[myPlayerNum];
-      const enemy = data.players[myPlayerNum === 1 ? 2 : 1];
-
-      // ステータス更新
-      document.getElementById("my-name").innerText = me.char || "自分";
-      document.getElementById("my-hp-text").innerText = `${me.hp}/${me.maxHp}`;
-      document.getElementById("my-hp-fill").style.width = `${Math.max(0, (me.hp / me.maxHp) * 100)}%`;
-      document.getElementById("my-status").innerHTML = formatStatus(me.status);
-
-      document.getElementById("enemy-name").innerText = enemy.char || "相手";
-      document.getElementById("enemy-hp-text").innerText = `${enemy.hp}/${enemy.maxHp}`;
-      document.getElementById("enemy-hp-fill").style.width = `${Math.max(0, (enemy.hp / enemy.maxHp) * 100)}%`;
-      document.getElementById("enemy-status").innerHTML = formatStatus(enemy.status);
-
-      // フェーズ & ロール表示判定
-      const phaseTag = document.getElementById("phase-tag");
-      const actionHint = document.getElementById("action-hint");
-      const attackDisplayTitle = document.getElementById("incoming-attack-title");
-      const attackDisplayPower = document.getElementById("incoming-attack-power");
-
-      if (data.phase === "ATTACK") {
-        const isMyAttack = (data.attacker === myPlayerNum);
-        document.getElementById("my-role").innerText = isMyAttack ? "[攻撃側]" : "[待機中]";
-        document.getElementById("enemy-role").innerText = isMyAttack ? "[防御側]" : "[攻撃側]";
-
-        attackDisplayTitle.innerText = "なし";
-        attackDisplayPower.innerText = "";
-
-        if (isMyAttack) {
-          phaseTag.innerText = "⚔️ あなたの攻撃";
-          phaseTag.className = "phase-badge phase-attack";
-          actionHint.innerText = "攻撃カードを選ぶか、パスしてください";
-        } else {
-          phaseTag.innerText = "⏳ 相手の攻撃待ち";
-          phaseTag.className = "phase-badge phase-wait";
-          actionHint.innerText = "相手の行動を待っています...";
-        }
-      } else if (data.phase === "DEFEND") {
-        const isMyDefend = (data.attacker !== myPlayerNum);
-        document.getElementById("my-role").innerText = isMyDefend ? "[防御側]" : "[攻撃側]";
-        document.getElementById("enemy-role").innerText = isMyDefend ? "[攻撃側]" : "[防御側]";
-
-        if (data.currentAttackCard) {
-          attackDisplayTitle.innerText = data.currentAttackCard.name;
-          attackDisplayPower.innerText = `ATK: ${data.currentAttackCard.power}`;
-        }
-
-        if (isMyDefend) {
-          phaseTag.innerText = "🛡️ ガード選択！";
-          phaseTag.className = "phase-badge phase-defend";
-          actionHint.innerText = "防御・防具カードを出して防ぐか、受けてください！";
-        } else {
-          phaseTag.innerText = "⏳ 相手の防御待ち";
-          phaseTag.className = "phase-badge phase-wait";
-          actionHint.innerText = "相手が防御を選択中...";
-        }
-      }
-
-      if (me.hand) {
-        myHand = me.hand;
-        renderHand();
-      }
-    }
-
-    function formatStatus(st) {
-      if (!st) return "";
-      let s = [];
-      if (st.burn > 0) s.push(`<span class="badge" style="background:#ff5555;">🔥やけど${st.burn}T</span>`);
-      if (st.freeze > 0) s.push(`<span class="badge" style="background:#00f0ff; color:#000;">🧊こおり${st.freeze}T</span>`);
-      if (st.confused > 0) s.push(`<span class="badge" style="background:#b026ff;">🌀混乱${st.confused}T</span>`);
-      if (st.counter) s.push(`<span class="badge" style="background:#ffcc00; color:#000;">🛡️カウンター構え</span>`);
-      if (st.magicUp) s.push(`<span class="badge" style="background:#00ff88; color:#000;">✨魔力2倍</span>`);
-      return s.join(" ");
-    }
-
-    function renderHand() {
-      const container = document.getElementById("hand");
-      container.innerHTML = "";
-
-      myHand.forEach(card => {
-        const div = document.createElement("div");
-        div.className = "card";
-        div.setAttribute("data-cat", card.category);
-
-        let powerLabel = card.power > 0 ? card.power : "-";
-        div.innerHTML = `
-          <div>
-            <div class="card-header">${card.name}</div>
-            <div class="card-badge">[${card.category}]</div>
-          </div>
-          <div class="card-power">${powerLabel}</div>
-          <div class="card-desc">${card.desc}</div>
-        `;
-
-        div.onclick = () => {
-          socket.emit("playCard", { room: currentRoom, playerNumber: myPlayerNum, cardInstanceId: card.instanceId });
-        };
-        container.appendChild(div);
-      });
-    }
-
-    function handlePass() {
-      socket.emit("passTurn", { room: currentRoom, playerNumber: myPlayerNum });
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
