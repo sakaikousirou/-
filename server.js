@@ -8,7 +8,7 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-// ツッコミどころ満載のキャラクター全10体
+// 個性豊かで賑やかなキャラクター全10体
 const CHARACTERS = {
   suzuki:     { name: "鈴木ゴンザレス",       hp: 70, mp: 12, desc: "腕っぷし一つで生き抜く伝説の覆面レスラー" },
   wizard:     { name: "魔法中年ヤマダ",       hp: 45, mp: 30, desc: "腰痛に悩むが魔力は一流のオジサン" },
@@ -22,106 +22,86 @@ const CHARACTERS = {
   monk:       { name: "ステゴロ破戒僧・タツ", hp: 65, mp: 16, desc: "「神に祈る暇があるなら拳を鍛えろ」が信条" }
 };
 
-// 全90種類のカードマスター完全復活！
-const CARD_MASTER = [
-  // --- 基本攻撃 (15種) ---
-  { id: "w01", name: "ジャブ", type: "attack", power: 8, mp: 2, category: "基本攻撃" },
-  { id: "w02", name: "ローキック", type: "attack", power: 10, mp: 2, category: "基本攻撃" },
-  { id: "w03", name: "ストレート", type: "attack", power: 11, mp: 3, category: "基本攻撃" },
-  { id: "w04", name: "クナイ投げ", type: "attack", power: 9, mp: 2, category: "基本攻撃" },
-  { id: "w05", name: "飛蹴り", type: "attack", power: 12, mp: 3, category: "基本攻撃" },
-  { id: "w06", name: "しっぺ", type: "attack", power: 6, mp: 1, category: "基本攻撃" },
-  { id: "w07", name: "カンチョー", type: "attack", power: 8, mp: 2, category: "基本攻撃" },
-  { id: "w08", name: "アッパーカット", type: "attack", power: 14, mp: 4, category: "基本攻撃" },
-  { id: "w09", name: "エルボー", type: "attack", power: 11, mp: 3, category: "基本攻撃" },
-  { id: "w10", name: "チョップ", type: "attack", power: 9, mp: 2, category: "基本攻撃" },
-  { id: "w11", name: "膝かけ", type: "attack", power: 7, mp: 1, category: "基本攻撃" },
-  { id: "w12", name: "影走り", type: "attack", power: 13, mp: 3, category: "基本攻撃" },
-  { id: "w13", name: "膝蹴り", type: "attack", power: 12, mp: 3, category: "基本攻撃" },
-  { id: "w14", name: "ネコパンチ", type: "attack", power: 6, mp: 1, category: "基本攻撃" },
-  { id: "w15", name: "つつき", type: "attack", power: 5, mp: 1, category: "基本攻撃" },
+// --- 全235枚のカードマスター自動生成ロジック ---
+function buildCardMaster() {
+  const cards = [];
 
-  // --- 強攻撃 (15種) ---
-  { id: "s01", name: "まわし蹴り", type: "attack", power: 20, mp: 5, category: "強攻撃" },
-  { id: "s02", name: "一本背負い", type: "attack", power: 24, mp: 6, category: "強攻撃" },
-  { id: "s03", name: "飛膝蹴り", type: "attack", power: 28, mp: 7, category: "強攻撃" },
-  { id: "s04", name: "居合切り", type: "attack", power: 22, mp: 5, category: "強攻撃" },
-  { id: "s05", name: "常闇突き", type: "attack", power: 32, mp: 8, category: "強攻撃" },
-  { id: "s06", name: "ドロップキック", type: "attack", power: 26, mp: 6, category: "強攻撃" },
-  { id: "s07", name: "ジャイアントスイング", type: "attack", power: 30, mp: 8, category: "強攻撃" },
-  { id: "s08", name: "必殺ラリアット", type: "attack", power: 21, mp: 5, category: "強攻撃" },
-  { id: "s09", name: "胴まわし回転蹴り", type: "attack", power: 27, mp: 7, category: "強攻撃" },
-  { id: "s10", name: "爆殺パンチ", type: "attack", power: 34, mp: 9, category: "強攻撃" },
-  { id: "s11", name: "竜巻砕き", type: "attack", power: 25, mp: 6, category: "強攻撃" },
-  { id: "s12", name: "落撃", type: "attack", power: 38, mp: 10, category: "強攻撃" },
-  { id: "s13", name: "必殺疾風突き", type: "attack", power: 18, mp: 4, category: "強攻撃" },
-  { id: "s14", name: "天空脚", type: "attack", power: 26, mp: 6, category: "強攻撃" },
-  { id: "s15", name: "カウンターアタック", type: "attack", power: 23, mp: 5, category: "強攻撃" },
+  // ① 普通攻撃（50個）
+  const normalAttacks = [
+    "ジャブ", "ストレート", "ローキック", "ハイキック", "エルボー", "膝蹴り", "チョップ", "ドロップキック", "フック", "アッパー",
+    "スライディング", "ヘッドバット", "体当たり", "踏みつけ", "急所突き", "スラッシュ", "連続パンチ", "回し蹴り", "掌打", "飛蹴り",
+    "胴払い", "兜割り", "飛翔拳", "烈空脚", "突き手", "タックル", "肩投げ", "背負い投げ", "関節留め", "崩し撃ち",
+    "閃光突き", "疾風パンチ", "猛虎拳", "飛燕脚", "崩拳", "震脚", "覇王拳", "金剛拳", "破岩撃", "流星パンチ",
+    "烈火撃", "怒涛撃", "連撃", "突進", "強襲", "一閃", "影縫い", "斬撃", "打撃", "必殺拳"
+  ];
+  normalAttacks.forEach((name, i) => {
+    cards.push({ id: `att_n_${i+1}`, name, type: "attack", element: "none", power: 8 + (i % 15) * 2, mp: 2 + Math.floor((i % 15) / 2), category: "普通攻撃" });
+  });
 
-  // --- 防御技 (40種：最大防御値35) ---
-  { id: "d01", name: "ガード", type: "defense", power: 5, mp: 1, category: "防御" },
-  { id: "d02", name: "パリィ", type: "defense", power: 8, mp: 2, category: "防御" },
-  { id: "d03", name: "盾受け", type: "defense", power: 10, mp: 2, category: "防御" },
-  { id: "d04", name: "回避", type: "defense", power: 7, mp: 1, category: "防御" },
-  { id: "d05", name: "見切り", type: "defense", power: 12, mp: 3, category: "防御" },
-  { id: "d06", name: "鉄壁の構え", type: "defense", power: 15, mp: 4, category: "防御" },
-  { id: "d07", name: "緊急回避", type: "defense", power: 9, mp: 2, category: "防御" },
-  { id: "d08", name: "金剛立ち", type: "defense", power: 20, mp: 5, category: "防御" },
-  { id: "d09", name: "受け流し", type: "defense", power: 11, mp: 3, category: "防御" },
-  { id: "d10", name: "クロスガード", type: "defense", power: 13, mp: 3, category: "防御" },
-  { id: "d11", name: "マジックバリア", type: "defense", power: 14, mp: 4, category: "防御" },
-  { id: "d12", name: "バックステップ", type: "defense", power: 6, mp: 1, category: "防御" },
-  { id: "d13", name: "身構える", type: "defense", power: 8, mp: 2, category: "防御" },
-  { id: "d14", name: "大盾の構え", type: "defense", power: 18, mp: 5, category: "防御" },
-  { id: "d15", name: "鏡の盾", type: "defense", power: 22, mp: 6, category: "防御" },
-  { id: "d16", name: "聖なるバリア", type: "defense", power: 25, mp: 7, category: "防御" },
-  { id: "d17", name: "影分身", type: "defense", power: 16, mp: 4, category: "防御" },
-  { id: "d18", name: "カウンターシールド", type: "defense", power: 17, mp: 4, category: "防御" },
-  { id: "d19", name: "アースウォール", type: "defense", power: 21, mp: 5, category: "防御" },
-  { id: "d20", name: "アイスシールド", type: "defense", power: 19, mp: 5, category: "防御" },
-  { id: "d21", name: "ファイアウォール", type: "defense", power: 18, mp: 4, category: "防御" },
-  { id: "d22", name: "風のベール", type: "defense", power: 15, mp: 4, category: "防御" },
-  { id: "d23", name: "光の護法陣", type: "defense", power: 28, mp: 7, category: "防御" },
-  { id: "d24", name: "暗黒の障壁", type: "defense", power: 26, mp: 7, category: "防御" },
-  { id: "d25", name: "仁王立ち", type: "defense", power: 30, mp: 8, category: "防御" },
-  { id: "d26", name: "不動の姿勢", type: "defense", power: 24, mp: 6, category: "防御" },
-  { id: "d27", name: "衝撃吸収", type: "defense", power: 12, mp: 3, category: "防御" },
-  { id: "d28", name: "煙幕", type: "defense", power: 10, mp: 2, category: "防御" },
-  { id: "d29", name: "鋼の肉体", type: "defense", power: 23, mp: 6, category: "防御" },
-  { id: "d30", name: "絶対防御", type: "defense", power: 32, mp: 8, category: "防御" },
-  { id: "d31", name: "エナジーシールド", type: "defense", power: 20, mp: 5, category: "防御" },
-  { id: "d32", name: "トールシールド", type: "defense", power: 27, mp: 7, category: "防御" },
-  { id: "d33", name: "スライディング回避", type: "defense", power: 7, mp: 1, category: "防御" },
-  { id: "d34", name: "武器受け", type: "defense", power: 14, mp: 3, category: "防御" },
-  { id: "d35", name: "結界破り対策", type: "defense", power: 29, mp: 7, category: "防御" },
-  { id: "d36", name: "イージスの盾", type: "defense", power: 31, mp: 8, category: "防御" },
-  { id: "d37", name: "プロテス", type: "defense", power: 16, mp: 4, category: "防御" },
-  { id: "d38", name: "マバリア", type: "defense", power: 17, mp: 4, category: "防御" },
-  { id: "d39", name: "神聖領域", type: "defense", power: 34, mp: 9, category: "防御" },
-  { id: "d40", name: "究極の防壁", type: "defense", power: 35, mp: 9, category: "防御" },
+  // ② 普通防御（50個）
+  const normalDefenses = [
+    "ガード", "パリィ", "盾受け", "回避Step", "見切り", "鉄壁の構え", "緊急回避", "金剛立ち", "受け流し", "クロスガード",
+    "バックステップ", "身構える", "大盾の構え", "衝撃吸収", "スライディング回避", "武器受け", "プロテス", "仁王立ち", "不動の姿勢", "鋼の肉体",
+    "受け止め", "見切り回避", "盾の壁", "シールドアップ", "ブロッキング", "アボイド", "ダッヂ", "ディフレクト", "カウンターガード", "ボディブロック",
+    "防御姿勢", "完全防御", "衝撃緩和", "身かわし", "危険察知", "受け流し術", "受け身", "姿勢制御", "重心固定", "鉄の構え",
+    "シェルガード", "アーマー受け", "衝撃分散", "ガードクラッシュ対策", "ディフェンスステップ", "パリィマスター", "極・見切り", "絶対ガード", "鉄壁陣", "ガーディアン"
+  ];
+  normalDefenses.forEach((name, i) => {
+    cards.push({ id: `def_n_${i+1}`, name, type: "defense", element: "none", power: 5 + (i % 20) * 2, mp: 1 + Math.floor((i % 20) / 2), category: "普通防御" });
+  });
 
-  // --- 魔法 (20種) ---
-  { id: "m01", name: "グランドクロス", type: "attack", power: 32, mp: 9, category: "魔法" },
-  { id: "m02", name: "野火炎", type: "attack", power: 18, mp: 4, category: "魔法" },
-  { id: "m03", name: "ギガフレア", type: "attack", power: 45, mp: 14, category: "魔法" },
-  { id: "m04", name: "サンダーボルト", type: "attack", power: 18, mp: 4, category: "魔法" },
-  { id: "m05", name: "ファイアボール", type: "attack", power: 12, mp: 3, category: "魔法" },
-  { id: "m06", name: "アイスコフィン", type: "attack", power: 22, mp: 5, category: "魔法" },
-  { id: "m07", name: "ウインドカッター", type: "attack", power: 16, mp: 4, category: "魔法" },
-  { id: "m08", name: "アースクエイク", type: "attack", power: 25, mp: 6, category: "魔法" },
-  { id: "m09", name: "ライトニングボルト", type: "attack", power: 20, mp: 5, category: "魔法" },
-  { id: "m10", name: "ウォーターブレス", type: "attack", power: 15, mp: 3, category: "魔法" },
-  { id: "m11", name: "メガファイア", type: "attack", power: 28, mp: 7, category: "魔法" },
-  { id: "m12", name: "フリーズ", type: "attack", power: 16, mp: 4, category: "魔法" },
-  { id: "m13", name: "ホーリー", type: "attack", power: 30, mp: 8, category: "魔法" },
-  { id: "m14", name: "ダークネス", type: "attack", power: 28, mp: 7, category: "魔法" },
-  { id: "m15", name: "ポイズン", type: "attack", power: 14, mp: 3, category: "魔法" },
-  { id: "m16", name: "ストーム", type: "attack", power: 24, mp: 6, category: "魔法" },
-  { id: "m17", name: "メテオシャワー", type: "attack", power: 38, mp: 11, category: "魔法" },
-  { id: "m18", name: "キュア", type: "heal", power: 15, mp: 4, category: "魔法" },
-  { id: "m19", name: "ハイキュア", type: "heal", power: 28, mp: 8, category: "魔法" },
-  { id: "m20", name: "ヒールポーション", type: "heal", power: 10, mp: 2, category: "魔法" }
-];
+  // 属性定義（火・水・草・雷・風）
+  const elements = [
+    { key: "fire", name: "火", god: "火神" },
+    { key: "water", name: "水", god: "水神" },
+    { key: "grass", name: "草", god: "樹神" },
+    { key: "thunder", name: "雷", god: "雷神" },
+    { key: "wind", name: "風", god: "風神" }
+  ];
+
+  // ③ 属性攻撃（各属性10個 × 5 ＝ 50個）
+  const elemAttacks = {
+    fire: ["イグニス", "プロメテウス", "フレイム", "灼熱", "ヴォルカノ", "紅蓮", "業火", "火炎", "マグマ", "ヒノカグツチ"],
+    water: ["アクア", "ポセイドン", "ネプチューン", "激流", "氷結", "清流", "水龍", "海神", "タイダル", "リヴァイアサン"],
+    grass: ["ガイア", "ユグドラシル", "ソーラー", "森羅", "樹界", "リーフ", "大地", "ヴァルハラ", "フローラ", "エルヴン"],
+    thunder: ["ゼウス", "トール", "サンダー", "紫電", "雷光", "インドラ", "ボルト", "電撃", "雷鳴", "ケラウノス"],
+    wind: ["シルフィード", "ヴェロシティ", "疾風", "嵐神", "サイクロン", "テンペスト", "ガイル", "ウインド", "ブラスト", "ヴォルテックス"]
+  };
+  const attackTypes = ["ブレイズ", "ウェーブ", "ウィップ", "ストライク", "カッター", "ブレイク", "キャノン", "スラッシュ", "バースト", "ノヴァ"];
+
+  elements.forEach(elem => {
+    const list = elemAttacks[elem.key];
+    for (let i = 0; i < 10; i++) {
+      cards.push({ id: `att_${elem.key}_${i+1}`, name: `${elem.god}・${list[i]}${attackTypes[i]}`, type: "attack", element: elem.key, power: 12 + i * 3, mp: 3 + Math.floor(i * 0.8), category: `${elem.name}属性攻撃` });
+    }
+  });
+
+  // ④ 属性防御（各属性15個 × 5 ＝ 75個）
+  const elemDefenses = {
+    fire: ["炎壁", "イグニスシールド", "プロテクトフレア", "業火陣", "フレイムベール", "火神の盾", "マグマウォール", "紅蓮障壁", "ヒートディフェンス", "灼熱結界", "バーニングバリア", "火神の加護", "フレイムガード", "煉獄の構え", "極・炎壁"],
+    water: ["水壁", "アクアバリア", "ポセイドンウォール", "清流陣", "アクアベール", "水神の盾", "アイスウォール", "激流障壁", "ハイドロディフェンス", "水流結界", "タイダルバリア", "水神の加護", "アクアガード", "氷結の構え", "極・水壁"],
+    grass: ["木甲", "ガイアシールド", "世界樹結界", "森羅陣", "リーフベール", "樹神の盾", "アースウォール", "大地の障壁", "フローラディフェンス", "樹界結界", "ソーラーバリア", "樹神の加護", "ガイアガード", "自然の構え", "極・木甲"],
+    thunder: ["電撃壁", "ボルトシールド", "ゼウスバリア", "紫光陣", "サンダーベール", "雷神の盾", "プラズマウォール", "放電障壁", "ライトニングディフェンス", "雷鳴結界", "スパークバリア", "雷神の加護", "ボルトガード", "帯電の構え", "極・電壁"],
+    wind: ["竜巻壁", "シルフベール", "疾風陣", "嵐神結界", "ウインドベール", "風神の盾", "サイクロンウォール", "真空障壁", "エアロディフェンス", "暴風結界", "ブラストバリア", "風神の加護", "シルフガード", "流風の構え", "極・風壁"]
+  };
+
+  elements.forEach(elem => {
+    const list = elemDefenses[elem.key];
+    for (let i = 0; i < 15; i++) {
+      cards.push({ id: `def_${elem.key}_${i+1}`, name: `${elem.god}「${list[i]}」`, type: "defense", element: elem.key, power: 8 + i * 2, mp: 2 + Math.floor(i * 0.5), category: `${elem.name}属性防御` });
+    }
+  });
+
+  // ⑤ 回復（10個）
+  const healNames = ["ポーション", "キュア", "ハイヒール", "生命の泉", "世界樹の雫", "神の恵み", "リカバリー", "女神の祝福", "全快の聖水", "エルリクサー"];
+  healNames.forEach((name, i) => {
+    cards.push({ id: `heal_${i+1}`, name, type: "heal", element: "none", power: 10 + i * 4, mp: 2 + Math.floor(i * 1.2), category: "回復魔法" });
+  });
+
+  return cards;
+}
+
+const CARD_MASTER = buildCardMaster();
 
 function getRandomCard() {
   const card = CARD_MASTER[Math.floor(Math.random() * CARD_MASTER.length)];
