@@ -117,3 +117,36 @@ canvas { image-rendering: pixelated; background: #eef2f5; border-radius: 12px; m
 .result-btn:hover {
   transform: scale(1.08);
 }
+/* 相手の攻撃時、使える防御カードをド派手に発光させるエフェクト */
+.card.highlight-defend {
+  animation: defendPulse 1.2s infinite alternate !important;
+  border: 3px solid #00f2fe !important;
+  z-index: 100 !important;
+}
+
+@keyframes defendPulse {
+  0% {
+    box-shadow: 0 0 15px #00f2fe, 0 0 30px #4facfe, inset 0 0 10px #00f2fe;
+    transform: translateY(-6px) scale(1.03);
+  }
+  100% {
+    box-shadow: 0 0 30px #00f2fe, 0 0 60px #4facfe, 0 0 90px #00f2fe, inset 0 0 20px #00f2fe;
+    transform: translateY(-14px) scale(1.1);
+  }
+}
+
+/* ガード推奨バッジ */
+.defend-tag {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(45deg, #00f2fe, #4facfe);
+  color: #000000;
+  font-weight: 900;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  box-shadow: 0 0 12px #00f2fe;
+  white-space: nowrap;
+}
