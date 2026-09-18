@@ -247,3 +247,9 @@ io.on("connection", (socket) => {
 });
 
 server.listen(process.env.PORT || 3000);
+// HP判定・ゲーム終了処理の例
+if (targetPlayer.hp <= 0) {
+  targetPlayer.hp = 0;
+  const winnerNumber = attackerNumber; // 攻撃側の勝利
+  io.to(room).emit("gameOver", { winner: winnerNumber });
+}
