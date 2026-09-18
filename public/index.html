@@ -3,33 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>対戦型カードゲーム</title>
+  <title>アルティメット・カードバトル</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="toast-msg"></div>
 
   <div id="char-select-screen">
-    <h2 style="color: #ffcc00;">キャラクターを選択してください（全10体）</h2>
+    <div class="title-logo">🔥 キャラクターセレクト 🔥</div>
     <div id="char-grid"></div>
   </div>
 
   <div id="game-screen" style="display: none;">
-    <div id="timer-display">残り時間: <span id="timer-val">20</span>秒</div>
+    <div class="header-bar">
+      <div id="timer-display">🕒 残り時間: <span id="timer-val">20</span>秒</div>
+    </div>
 
     <div class="battle-field">
       <div class="player-box" id="my-box">
         <canvas id="my-canvas" width="80" height="80"></canvas>
+        <div class="badge player">【あなた】</div>
         <div class="char-name" id="my-name">-</div>
-        <div class="stat">HP: <span id="my-hp">0</span></div>
-        <div class="stat">MP: <span id="my-mp">0</span></div>
+        <div class="stat-bar hp-bar">HP <span id="my-hp">0</span></div>
+        <div class="stat-bar mp-bar">MP <span id="my-mp">0</span></div>
       </div>
+      
       <div class="vs-text">VS</div>
+      
       <div class="player-box" id="enemy-box">
         <canvas id="enemy-canvas" width="80" height="80"></canvas>
+        <div class="badge enemy">【相手】</div>
         <div class="char-name" id="enemy-name">-</div>
-        <div class="stat">HP: <span id="enemy-hp">0</span></div>
-        <div class="stat">MP: <span id="enemy-mp">0</span></div>
+        <div class="stat-bar hp-bar">HP <span id="enemy-hp">0</span></div>
+        <div class="stat-bar mp-bar">MP <span id="enemy-mp">0</span></div>
       </div>
     </div>
 
@@ -40,17 +46,21 @@
     </div>
 
     <div class="hand-section">
-      <h3 id="turn-guide-text">あなたの手札</h3>
+      <div class="turn-indicator" id="turn-guide-text">あなたの手札</div>
       <div id="hand-container"></div>
-      <button id="pass-btn">パスする</button>
+      <button id="pass-btn">⏭️ パスする</button>
     </div>
 
     <div class="bottom-area">
-      <div id="log-box"></div>
-      <div id="chat-box">
+      <div class="panel log-panel">
+        <div class="panel-title">📝 バトルログ</div>
+        <div id="log-box"></div>
+      </div>
+      <div class="panel chat-panel">
+        <div class="panel-title">💬 チャット</div>
         <div id="chat-messages"></div>
         <div class="chat-input-area">
-          <input type="text" id="chat-input" placeholder="メッセージを入力...">
+          <input type="text" id="chat-input" placeholder="煽りメッセージを入力...">
           <button id="chat-send">送信</button>
         </div>
       </div>
