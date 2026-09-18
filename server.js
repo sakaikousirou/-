@@ -8,7 +8,7 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-// 個性豊かで賑やかなキャラクター全10体
+// キャラクター全10体
 const CHARACTERS = {
   suzuki:     { name: "鈴木ゴンザレス",       hp: 70, mp: 12, desc: "腕っぷし一つで生き抜く伝説の覆面レスラー" },
   wizard:     { name: "魔法中年ヤマダ",       hp: 45, mp: 30, desc: "腰痛に悩むが魔力は一流のオジサン" },
@@ -26,7 +26,7 @@ const CHARACTERS = {
 function buildCardMaster() {
   const cards = [];
 
-  // ① 普通攻撃（50個）
+  // ① 普通攻撃（50個） ➔ MPはすべて 0！
   const normalAttacks = [
     "ジャブ", "ストレート", "ローキック", "ハイキック", "エルボー", "膝蹴り", "チョップ", "ドロップキック", "フック", "アッパー",
     "スライディング", "ヘッドバット", "体当たり", "踏みつけ", "急所突き", "スラッシュ", "連続パンチ", "回し蹴り", "掌打", "飛蹴り",
@@ -35,10 +35,10 @@ function buildCardMaster() {
     "烈火撃", "怒涛撃", "連撃", "突進", "強襲", "一閃", "影縫い", "斬撃", "打撃", "必殺拳"
   ];
   normalAttacks.forEach((name, i) => {
-    cards.push({ id: `att_n_${i+1}`, name, type: "attack", element: "none", power: 8 + (i % 15) * 2, mp: 2 + Math.floor((i % 15) / 2), category: "普通攻撃" });
+    cards.push({ id: `att_n_${i+1}`, name, type: "attack", element: "none", power: 8 + (i % 15) * 2, mp: 0, category: "普通攻撃" });
   });
 
-  // ② 普通防御（50個）
+  // ② 普通防御（50個） ➔ MPはすべて 0！
   const normalDefenses = [
     "ガード", "パリィ", "盾受け", "回避Step", "見切り", "鉄壁の構え", "緊急回避", "金剛立ち", "受け流し", "クロスガード",
     "バックステップ", "身構える", "大盾の構え", "衝撃吸収", "スライディング回避", "武器受け", "プロテス", "仁王立ち", "不動の姿勢", "鋼の肉体",
@@ -47,7 +47,7 @@ function buildCardMaster() {
     "シェルガード", "アーマー受け", "衝撃分散", "ガードクラッシュ対策", "ディフェンスステップ", "パリィマスター", "極・見切り", "絶対ガード", "鉄壁陣", "ガーディアン"
   ];
   normalDefenses.forEach((name, i) => {
-    cards.push({ id: `def_n_${i+1}`, name, type: "defense", element: "none", power: 5 + (i % 20) * 2, mp: 1 + Math.floor((i % 20) / 2), category: "普通防御" });
+    cards.push({ id: `def_n_${i+1}`, name, type: "defense", element: "none", power: 5 + (i % 20) * 2, mp: 0, category: "普通防御" });
   });
 
   // 属性定義（火・水・草・雷・風）
@@ -59,7 +59,7 @@ function buildCardMaster() {
     { key: "wind", name: "風", god: "風神" }
   ];
 
-  // ③ 属性攻撃（各属性10個 × 5 ＝ 50個）
+  // ③ 属性攻撃（各属性10個 × 5 ＝ 50個） ➔ 魔法なのでMP消費あり
   const elemAttacks = {
     fire: ["イグニス", "プロメテウス", "フレイム", "灼熱", "ヴォルカノ", "紅蓮", "業火", "火炎", "マグマ", "ヒノカグツチ"],
     water: ["アクア", "ポセイドン", "ネプチューン", "激流", "氷結", "清流", "水龍", "海神", "タイダル", "リヴァイアサン"],
@@ -76,7 +76,7 @@ function buildCardMaster() {
     }
   });
 
-  // ④ 属性防御（各属性15個 × 5 ＝ 75個）
+  // ④ 属性防御（各属性15個 × 5 ＝ 75個） ➔ 魔法なのでMP消費あり
   const elemDefenses = {
     fire: ["炎壁", "イグニスシールド", "プロテクトフレア", "業火陣", "フレイムベール", "火神の盾", "マグマウォール", "紅蓮障壁", "ヒートディフェンス", "灼熱結界", "バーニングバリア", "火神の加護", "フレイムガード", "煉獄の構え", "極・炎壁"],
     water: ["水壁", "アクアバリア", "ポセイドンウォール", "清流陣", "アクアベール", "水神の盾", "アイスウォール", "激流障壁", "ハイドロディフェンス", "水流結界", "タイダルバリア", "水神の加護", "アクアガード", "氷結の構え", "極・水壁"],
@@ -92,7 +92,7 @@ function buildCardMaster() {
     }
   });
 
-  // ⑤ 回復（10個）
+  // ⑤ 回復（10個） ➔ 魔法なのでMP消費あり
   const healNames = ["ポーション", "キュア", "ハイヒール", "生命の泉", "世界樹の雫", "神の恵み", "リカバリー", "女神の祝福", "全快の聖水", "エルリクサー"];
   healNames.forEach((name, i) => {
     cards.push({ id: `heal_${i+1}`, name, type: "heal", element: "none", power: 10 + i * 4, mp: 2 + Math.floor(i * 1.2), category: "回復魔法" });
@@ -141,6 +141,8 @@ function resolveAttack(game, room, defenderCard = null) {
   if (defender.hp <= 0) {
     if (game.timerInterval) clearInterval(game.timerInterval);
     io.to(room).emit("gameStateUpdate", { log: log + ` 💀 ${defender.char} 倒れた！ ${attacker.char} の勝利！`, winner: attackerNum, players: game.players, phase: "END", pendingAttack: null });
+    // 巨大勝利ポップアップ用のイベント発信
+    io.to(room).emit("gameOver", { winner: attackerNum });
     delete games[room];
     return;
   }
@@ -247,9 +249,3 @@ io.on("connection", (socket) => {
 });
 
 server.listen(process.env.PORT || 3000);
-// HP判定・ゲーム終了処理の例
-if (targetPlayer.hp <= 0) {
-  targetPlayer.hp = 0;
-  const winnerNumber = attackerNumber; // 攻撃側の勝利
-  io.to(room).emit("gameOver", { winner: winnerNumber });
-}
