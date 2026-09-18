@@ -63,3 +63,57 @@ canvas { image-rendering: pixelated; background: #eef2f5; border-radius: 12px; m
 #toast-msg { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ff7675; color: #fff; padding: 12px 25px; border-radius: 12px; display: none; z-index: 1000; font-weight: bold; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
 #pass-btn { padding: 12px 28px; background: #ffeaa7; color: #d63031; border: 2px solid #fdcb6e; border-radius: 12px; cursor: pointer; margin-top: 15px; font-size: 16px; font-weight: bold; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
 #pass-btn:hover { background: #fdcb6e; transform: scale(1.05); }
+/* 勝利・敗北のド派手巨大オーバーレイ */
+.result-overlay {
+  position: fixed; 
+  top: 0; left: 0; 
+  width: 100vw; height: 100vh;
+  background: rgba(10, 10, 15, 0.9);
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center;
+  z-index: 10000; 
+  animation: resultPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes resultPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.result-title {
+  font-size: 64px;
+  font-weight: 900;
+  margin-bottom: 25px;
+  letter-spacing: 2px;
+}
+
+/* 勝利時の黄金ネオン */
+.win-title {
+  color: #ffdd59;
+  text-shadow: 0 0 20px #ffa502, 0 0 40px #ffdd59, 0 0 80px #ff1493;
+}
+
+/* 敗北時の赤ネオン */
+.lose-title {
+  color: #ff4757;
+  text-shadow: 0 0 20px #ff4757, 0 0 40px #ff6b81;
+}
+
+.result-btn {
+  padding: 16px 45px;
+  font-size: 22px;
+  font-weight: bold;
+  background: linear-gradient(135deg, #a55eea, #4bcdda);
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  box-shadow: 0 0 25px rgba(165, 94, 234, 0.6);
+  transition: transform 0.2s;
+}
+
+.result-btn:hover {
+  transform: scale(1.08);
+}
