@@ -4,82 +4,93 @@
     <meta charset="UTF-8">
     <title>カオスカードバトル</title>
     <style>
-        /* 画像に合わせた水色グラデーション背景 */
+        /* 水色グラデーション背景（元の綺麗なUI） */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: linear-gradient(135deg, #d4ebf2 0%, #a1c4fd 100%); 
-            color: #333; 
+            background: linear-gradient(180deg, #cbe3ff 0%, #a2cbff 100%); 
+            color: #2c3e50; 
             margin: 0; 
             padding: 20px; 
             min-height: 100vh;
         }
-        .container { max-width: 900px; margin: 0 auto; }
+        .container { max-width: 960px; margin: 0 auto; }
         
-        .panel { background: rgba(255, 255, 255, 0.6); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .battle-panel-bg { background: #34495e; color: #ecf0f1; } 
-        
-        button { padding: 10px 15px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; font-weight: bold;}
+        .panel { 
+            background: #ffffff; 
+            padding: 24px; 
+            border-radius: 12px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            text-align: center;
+        }
+
+        button { padding: 10px 18px; background: #e74c3c; color: white; border: none; border-radius: 6px; cursor: pointer; margin: 5px; font-weight: bold; font-size: 14px;}
         button:hover { background: #c0392b; }
-        input, select { padding: 10px; margin: 5px; border-radius: 4px; border: 1px solid #ccc; }
+        input, select { padding: 10px; margin: 5px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; }
         .hidden { display: none; }
         
-        /* ログ & チャット */
-        .log-box { height: 150px; overflow-y: scroll; background: #1a252f; color: #ecf0f1; padding: 10px; border-radius: 4px; font-family: monospace; margin-bottom: 10px; }
-        .chat-box { height: 100px; overflow-y: scroll; background: #1a252f; color: #ecf0f1; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
-        
-        /* キャラクター選択用カードのデザイン */
-        .card-container { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 20px; justify-content: center; }
+        /* キャラクター選択画面のカードデザイン */
+        .card-container { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 20px; justify-content: center; }
         .char-card { 
             background: #ffffff; 
-            color: #333; 
-            padding: 15px 10px; 
-            border-radius: 8px; 
-            width: 150px; 
+            padding: 16px 12px; 
+            border-radius: 12px; 
+            width: 180px; 
             cursor: pointer; 
-            border: 2px solid #b3d4fc; 
+            border: 3px solid transparent; 
             text-align: center; 
             display: flex; 
             flex-direction: column; 
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+            transition: all 0.2s ease;
         }
-        .char-card:hover { border: 2px solid #3498db; transform: translateY(-2px); transition: 0.2s;}
-        
-        /* バトル中のカードデザイン */
+        .char-card:hover { 
+            border-color: #3498db; 
+            transform: translateY(-4px); 
+            box-shadow: 0 6px 16px rgba(52, 152, 219, 0.2);
+        }
+
+        /* ドット絵アイコン */
+        .pixel-icon {
+            width: 48px;
+            height: 48px;
+            image-rendering: pixelated;
+            margin-bottom: 8px;
+        }
+
+        /* バトル用UI */
+        .battle-panel-bg { background: #34495e; color: #ecf0f1; text-align: left; }
+        .log-box { height: 150px; overflow-y: scroll; background: #1a252f; color: #ecf0f1; padding: 10px; border-radius: 6px; font-family: monospace; margin-bottom: 10px; }
+        .chat-box { height: 100px; overflow-y: scroll; background: #1a252f; color: #ecf0f1; padding: 10px; border-radius: 6px; margin-bottom: 10px; }
         .battle-card { background: #ecf0f1; color: #2c3e50; padding: 10px; border-radius: 6px; width: 140px; cursor: pointer; border: 2px solid transparent; text-align: center; display: flex; flex-direction: column; align-items: center; }
-        .battle-card:hover { border: 2px solid #e74c3c; transform: translateY(-2px); transition: 0.2s;}
-        .battle-card.attack { border-top: 4px solid #e74c3c; }
-        .battle-card.defense { border-top: 4px solid #3498db; }
-        .battle-card.heal { border-top: 4px solid #2ecc71; }
-        
-        /* ステータスエリア */
+        .battle-card:hover { border-color: #e74c3c; transform: translateY(-2px); }
         .status-area { display: flex; justify-content: space-between; margin-bottom: 15px; }
         .player-status { background: #2c3e50; padding: 10px; border-radius: 6px; width: 48%; border: 1px solid #7f8c8d; }
-        .player-box { display: flex; align-items: center; background: #1a252f; margin-bottom: 8px; padding: 8px; border-radius: 6px; border: 2px solid transparent; color: white;}
+        .player-box { display: flex; align-items: center; background: #1a252f; margin-bottom: 8px; padding: 8px; border-radius: 6px; color: white;}
         .player-box.active-turn { border: 2px solid #f1c40f; box-shadow: 0 0 10px rgba(241,196,15,0.5); }
-        .player-info { line-height: 1.4; }
-        
         .timer { font-size: 24px; font-weight: bold; color: #e74c3c; text-align: center; margin-bottom: 10px;}
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- ログイン画面 -->
-    <div id="login-panel" class="panel" style="text-align: center; background: white;">
-        <h2>🔥 カオスカードバトル</h2>
+
+    <!-- 参加画面 -->
+    <div id="login-panel" class="panel">
+        <h1 style="margin-top: 0; color: #2c3e50;">🔥 カオスカードバトル</h1>
         <h3>ルームに参加</h3>
-        <input type="number" id="room-input" placeholder="ルーム番号 (例: 1)" value="1">
+        <input type="number" id="room-input" placeholder="ルーム番号" value="1">
         <select id="mode-input">
             <option value="1v1">1 vs 1</option>
             <option value="2v2">2 vs 2</option>
         </select>
         <button onclick="joinRoom()">参加する</button>
-        <p id="status-msg"></p>
+        <p id="status-msg" style="margin-bottom: 0; color: #e74c3c; font-weight: bold;"></p>
     </div>
 
     <!-- キャラクター選択画面 -->
     <div id="char-select-panel" class="hidden">
-        <h2 style="text-align: center;">戦うキャラクターを選択してください</h2>
+        <h2 style="text-align: center; color: #2c3e50; margin-bottom: 20px;">戦うキャラクターを選択してください</h2>
         <div id="char-list" class="card-container"></div>
     </div>
 
@@ -109,11 +120,66 @@
             <button onclick="sendChat()">送信</button>
         </div>
     </div>
+
 </div>
 
 <!-- Socket.io -->
 <script src="/socket.io/socket.io.js"></script>
 <script>
+    // --- ドット絵データ & 変換描画ロジック ---
+    const PIXEL_DATA = {
+      suzuki: ["...RRRR...","..RRRRRR..",".RROOOORR.",".OOOOOOOO.","..RRRRRR..",".RR.RR.RR.","..RRRRRR..","...RRRR...","...BBBB..."],
+      wizard: ["...PPPP...","..PPPPPP..","..PPOOPP..",".OOOOOOOO.","..PPPPPP..",".YY.PP.YY.","..PPPPPP..","...PPPP...","...BBBB..."],
+      rogue:  ["...GGGG...","..GGGGGG..","..GGOOGG..",".OOOOOOOO.","..GGGGGG..",".BB.GG.BB.","..GGGGGG..","...GGGG...","...BBBB..."],
+      knight: ["...SSSS...","..SSSSSS..","..SSOOSS..",".OOOOOOOO.","..SSSSSS..",".CC.SS.CC.","..SSSSSS..","...SSSS...","...SSSS..."],
+      ninja:  ["...BBBB...","..BBBBBB..","..BBOOBB..",".OOOOOOOO.","..BBBBBB..",".RR.BB.RR.","..BBBBBB..","...BBBB...","...BBBB..."],
+      berserker:["...RRRR...","..RBBBRR..","..RROORR..",".OOOOOOOO.","..RRRRRR..",".BB.RR.BB.","..RRRRRR..","...RRRR...","...BBBB..."],
+      paladin: ["...WWWW...","..WWWWWW..","..WWOOWW..",".OOOOOOOO.","..WWWWWW..",".YY.WW.YY.","..WWWWWW..","...WWWW...","...WWWW..."],
+      necromancer:["...PPPP...","..PPBBPP..","..PBOOBP..",".OOOOOOOO.","..PPPPPP..",".GG.PP.GG.","..PPPPPP..","...PPPP...","...BBBB..."],
+      archer: ["...GGGG...","..GGGGGG..","..GGOOGG..",".OOOOOOOO.","..GGGGGG..",".YY.GG.YY.","..GGGGGG..","...GGGG...","...DDDD..."],
+      monk:   ["...YYYY...","..YYYYYY..","..YYOOYY..",".OOOOOOOO.","..YYYYYY..",".RR.YY.RR.","..YYYYYY..","...YYYY...","...BBBB..."]
+    };
+
+    const COLOR_MAP = {
+      'R': '#e74c3c', // 赤
+      'O': '#f0a875', // 肌色
+      'P': '#8e44ad', // 紫
+      'G': '#2ecc71', // 緑
+      'S': '#bdc3c7', // 銀/灰
+      'B': '#2c3e50', // 黒/濃紺
+      'Y': '#f1c40f', // 黄
+      'C': '#1abc9c', // 水色
+      'W': '#ffffff', // 白
+      'D': '#7f8c8d'  // 茶/暗灰
+    };
+
+    // PIXEL_DATAをDataURL形式の画像に変換する関数
+    function createPixelArtUrl(key) {
+      const matrix = PIXEL_DATA[key];
+      if (!matrix) return '';
+      
+      const canvas = document.createElement('canvas');
+      const rows = matrix.length;
+      const cols = matrix[0].length;
+      const scale = 8; // ドットの拡大率
+      
+      canvas.width = cols * scale;
+      canvas.height = rows * scale;
+      const ctx = canvas.getContext('2d');
+      
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const char = matrix[r][c];
+          if (char !== '.' && COLOR_MAP[char]) {
+            ctx.fillStyle = COLOR_MAP[char];
+            ctx.fillRect(c * scale, r * scale, scale, scale);
+          }
+        }
+      }
+      return canvas.toDataURL();
+    }
+
+    // --- ゲーム制御処理 ---
     const socket = io();
     let myRoom = null;
     let myPlayerNumber = null;
@@ -133,9 +199,6 @@
         chatInput: document.getElementById('chat-input')
     };
 
-    // ドット絵生成用URL
-    const getAvatarUrl = (seed) => `https://api.dicebear.com/9.x/pixel-art/svg?seed=${seed}`;
-
     function addLog(msg, element = ui.gameLog) {
         const div = document.createElement('div');
         div.textContent = msg;
@@ -153,7 +216,7 @@
 
     function selectCharacter(charKey) {
         socket.emit('selectCharacter', { room: myRoom, playerNumber: myPlayerNumber, charKey });
-        ui.charSelect.innerHTML = '<h3 style="text-align:center;">他のプレイヤーを待っています...</h3>';
+        ui.charSelect.innerHTML = '<h3 style="text-align:center; color:#2c3e50;">他のプレイヤーを待っています...</h3>';
     }
 
     function playCard(cardInstanceId) {
@@ -179,7 +242,7 @@
     socket.on('errorMsg', msg => alert('エラー: ' + msg));
     socket.on('playerInfo', data => myPlayerNumber = data.playerNumber);
 
-    // キャラクター選択画面（デザインは水色のまま、アイコンだけドット絵に）
+    // キャラクター選択フェーズ（ドット絵生成を適用）
     socket.on('selectCharacterPhase', data => {
         ui.login.classList.add('hidden');
         ui.charSelect.classList.remove('hidden');
@@ -188,12 +251,15 @@
         for (const [key, char] of Object.entries(data.characters)) {
             const card = document.createElement('div');
             card.className = 'char-card';
+            
+            // PIXEL_DATA から作成したドット絵画像を設置
+            const imgUrl = createPixelArtUrl(key);
             card.innerHTML = `
-                <img src="${getAvatarUrl(key)}" width="48" height="48" style="image-rendering: pixelated; border-radius: 4px; background: #bdc3c7; margin-bottom: 8px;">
-                <strong style="font-size: 13px;">${char.name}</strong>
-                <div style="font-size: 12px; margin: 4px 0 0; color: #e74c3c;">HP: ${char.hp}</div>
-                <div style="font-size: 12px; margin: 0 0 8px; color: #3498db;">MP: ${char.mp}</div>
-                <small style="font-size: 10px; color: #666; display: block;">${char.desc}</small>
+                <img src="${imgUrl}" class="pixel-icon" alt="${char.name}">
+                <strong style="font-size: 15px; color: #2c3e50;">${char.name}</strong>
+                <div style="font-size: 13px; margin-top: 6px; color: #e74c3c; font-weight: bold;">HP: ${char.hp}</div>
+                <div style="font-size: 13px; margin-bottom: 8px; color: #3498db; font-weight: bold;">MP: ${char.mp}</div>
+                <small style="font-size: 11px; color: #7f8c8d; line-height: 1.3;">${char.desc}</small>
             `;
             card.onclick = () => selectCharacter(key);
             ui.charList.appendChild(card);
@@ -234,13 +300,13 @@
             const pNum = parseInt(pNumStr);
             const p = players[pNumStr];
             const isTurn = data.currentTurn === pNum;
+            const imgUrl = createPixelArtUrl(p.charKey);
             
             const pDiv = document.createElement('div');
             pDiv.className = `player-box ${isTurn ? 'active-turn' : ''}`;
             
-            // バトル画面のアイコンもドット絵に
             pDiv.innerHTML = `
-                <img src="${getAvatarUrl(p.charKey)}" width="40" height="40" style="image-rendering: pixelated; border-radius: 4px; background: #bdc3c7; margin-right: 10px; ${p.isDead ? 'filter: grayscale(100%); opacity: 0.5;' : ''}">
+                <img src="${imgUrl}" style="width:36px; height:36px; image-rendering:pixelated; margin-right:10px; ${p.isDead ? 'filter:grayscale(100%); opacity:0.5;' : ''}">
                 <div class="player-info" style="${p.isDead ? 'opacity:0.5;' : ''}">
                     <strong style="${isTurn ? 'color:#f1c40f;' : ''}">${p.char} ${pNum === myPlayerNumber ? '(自分)' : ''}</strong> ${p.isDead ? '💀' : ''}<br>
                     <span style="color:#e74c3c;">HP: ${p.hp}</span> / <span style="color:#3498db;">MP: ${p.mp}</span>
