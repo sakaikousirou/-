@@ -22,12 +22,17 @@ canvas { image-rendering: pixelated; background: #eef2f5; border-radius: 12px; m
 
 /* カラフルでポップな手札カード */
 #hand-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 950px; margin: 15px auto; }
-.card { background: #ffffff; border-radius: 12px; padding: 10px; width: 115px; cursor: pointer; user-select: none; transition: 0.2s; border: 3px solid #ccc; box-shadow: 0 6px 15px rgba(0,0,0,0.08); position: relative; }
+.card { background: #ffffff; border-radius: 12px; padding: 10px; width: 115px; cursor: pointer; user-select: none; transition: 0.2s; border: 3px solid #ccc; box-shadow: 0 6px 15px rgba(0,0,0,0.08); position: relative; box-sizing: border-box; }
 .card:hover { transform: translateY(-10px); box-shadow: 0 12px 20px rgba(0,0,0,0.15); }
 
+/* ⚙️ ① 通常攻撃・通常防御（無属性）➔ 【灰色枠＆ほんのりグレー背景】 */
+.card.elem-none.type-attack,
+.card.elem-none.type-defense { 
+  border-color: #8395a7 !important; 
+  background: #f1f2f6 !important; 
+}
+
 /* 属性ごとのカラフルなテーマ枠線・背景 */
-.card.elem-none.type-attack { border-color: #ff6b6b; background: #fff5f5; }
-.card.elem-none.type-defense { border-color: #4dabf7; background: #f0f8ff; }
 .card.elem-fire { border-color: #ff4d4d; background: #fff0f0; }
 .card.elem-water { border-color: #339af0; background: #e7f5ff; }
 .card.elem-grass { border-color: #51cf66; background: #ebfbee; }
@@ -35,13 +40,22 @@ canvas { image-rendering: pixelated; background: #eef2f5; border-radius: 12px; m
 .card.elem-wind { border-color: #20c997; background: #e6fcf5; }
 .card.type-heal { border-color: #ff8787; background: #fff0f6; }
 
-.elem-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; color: #fff; margin-bottom: 4px; }
+/* 📖 ② カード文字をくっきり濃い色で可読性アップ */
+.card div, .card span {
+  color: #2c3e50 !important;
+  font-weight: bold;
+}
+.stat-power { color: #d63031 !important; font-weight: 900; }
+.stat-defense { color: #0984e3 !important; font-weight: 900; }
+.stat-mp { color: #d35400 !important; font-weight: 900; }
+
+.elem-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; color: #fff !important; margin-bottom: 4px; }
 .bg-fire { background: #ff4d4d; }
 .bg-water { background: #339af0; }
 .bg-grass { background: #51cf66; }
-.bg-thunder { background: #fcc419; color: #333; }
+.bg-thunder { background: #fcc419; color: #333 !important; }
 .bg-wind { background: #20c997; }
-.bg-none { background: #868e96; }
+.bg-none, .bg-none-att, .bg-none-def { background: #8395a7 !important; color: #fff !important; }
 .bg-heal { background: #ff8787; }
 
 /* 攻撃警告バナー */
@@ -63,6 +77,7 @@ canvas { image-rendering: pixelated; background: #eef2f5; border-radius: 12px; m
 #toast-msg { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ff7675; color: #fff; padding: 12px 25px; border-radius: 12px; display: none; z-index: 1000; font-weight: bold; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
 #pass-btn { padding: 12px 28px; background: #ffeaa7; color: #d63031; border: 2px solid #fdcb6e; border-radius: 12px; cursor: pointer; margin-top: 15px; font-size: 16px; font-weight: bold; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
 #pass-btn:hover { background: #fdcb6e; transform: scale(1.05); }
+
 /* 勝利・敗北のド派手巨大オーバーレイ */
 .result-overlay {
   position: fixed; 
@@ -89,13 +104,11 @@ canvas { image-rendering: pixelated; background: #eef2f5; border-radius: 12px; m
   letter-spacing: 2px;
 }
 
-/* 勝利時の黄金ネオン */
 .win-title {
   color: #ffdd59;
   text-shadow: 0 0 20px #ffa502, 0 0 40px #ffdd59, 0 0 80px #ff1493;
 }
 
-/* 敗北時の赤ネオン */
 .lose-title {
   color: #ff4757;
   text-shadow: 0 0 20px #ff4757, 0 0 40px #ff6b81;
@@ -117,6 +130,7 @@ canvas { image-rendering: pixelated; background: #eef2f5; border-radius: 12px; m
 .result-btn:hover {
   transform: scale(1.08);
 }
+
 /* 相手の攻撃時、使える防御カードをド派手に発光させるエフェクト */
 .card.highlight-defend {
   animation: defendPulse 1.2s infinite alternate !important;
@@ -135,7 +149,6 @@ canvas { image-rendering: pixelated; background: #eef2f5; border-radius: 12px; m
   }
 }
 
-/* ガード推奨バッジ */
 .defend-tag {
   position: absolute;
   top: -14px;
