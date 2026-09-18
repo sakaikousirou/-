@@ -122,4 +122,34 @@ io.on("connection", (socket) => {
     const p2 = socket;
     waitingPlayer = null;
     p1.join(roomName); p2.join(roomName);
-    games[roomName] = { players: {
+    games[roomName] = { players: { 1: { id: p1.id, charKey: "suzuki", char: null, hp: 60, mp: 10, hand: generateHand(), ready: false }, 2: { id: p2.id, charKey: "suzuki", char: null, hp: 60, mp: 10, hand: generateHand(), ready: false } }, currentTurn: 1, phase: "ATTACK", pendingAttack: null, timer: 20, timerInterval: null };
+    p1.emit("selectCharacterPhase", { room: roomName, playerNumber: 1, characters: CHARACTERS });
+    p2.emit("selectCharacterPhase", { room: roomName, playerNumber: 2, characters: CHARACTERS });
+  }
+
+  socket.on("selectCharacter", (data) => {
+    const game = games[data.room];
+    if (!game) return;
+    const charInfo = CHARACTERS[data.charKey];
+    game.players[data.playerNumber] = { ...game.players[data.playerNumber], charKey: data.charKey, char: charInfo.name, hp: charInfo.hp, mp: charInfo.mp, ready: true };
+    if (game.players[1].ready && game.players[2].ready) {
+      io.to(data.room).emit("gameStart", { room: data.room, players: game.players, currentTurn: 1, phase: "ATTACK", pendingAttack: null });
+      startTimer(game, data.room);
+    }
+  });
+
+  socket.on("playCard", (data) => {
+    const game = games[data.room];
+    if (!game || game.currentTurn !== data.playerNumber) return;
+    const player = game.players[data.playerNumber];
+    const idx = player.hand.findIndex(c => c.instanceId === data.cardInstanceId);
+    if (idx === -1) return;
+    const card = player.hand[idx];
+    if (player.mp < card.mp) return socket.emit("errorMsg", "MP不足！");
+
+    if (game.phase === "ATTACK") {
+      if (card.type === "defense") return socket.emit("errorMsg", "攻撃ターンです！");
+      player.mp -= card.mp; player.hand.splice(idx, 1); player.hand.push(getRandomCard());
+      if (card.type === "heal") {
+        player.hp += card.power; game.currentTurn = data.playerNumber === 1 ? 2 : 1; game.players[game.currentTurn].mp += 3;
+        io.to(data.room).emit("gameStateUpdate", { log: `✨ ${player.char} HP${card.power
