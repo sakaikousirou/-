@@ -1,5 +1,4 @@
 body { 
-  /* 明るくワクワクするパステルグラデーション背景 */
   background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 50%, #fff1eb 100%);
   background-attachment: fixed;
   color: #2c3e50; 
@@ -20,146 +19,121 @@ canvas { image-rendering: pixelated; background: #eef2f5; border-radius: 12px; m
 .player-box { background: rgba(255, 255, 255, 0.95); border: 3px solid #a29bfe; border-radius: 18px; padding: 15px; width: 220px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
 .vs-text { font-size: 40px; font-weight: 900; color: #ff7675; text-shadow: 2px 2px 0px #fff, 0 0 10px rgba(255,118,117,0.4); }
 
-/* カラフルでポップな手札カード */
 #hand-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 950px; margin: 15px auto; }
-.card { background: #ffffff; border-radius: 12px; padding: 10px; width: 115px; cursor: pointer; user-select: none; transition: 0.2s; border: 3px solid #ccc; box-shadow: 0 6px 15px rgba(0,0,0,0.08); position: relative; box-sizing: border-box; }
-.card:hover { transform: translateY(-10px); box-shadow: 0 12px 20px rgba(0,0,0,0.15); }
 
-/* ⚙️ ① 通常攻撃・通常防御（無属性）➔ 【灰色枠＆ほんのりグレー背景】 */
+/* 🃏 カード基本スタイル */
+.card { 
+  background: #ffffff !important; 
+  border-radius: 12px; 
+  padding: 10px; 
+  width: 115px; 
+  cursor: pointer; 
+  user-select: none; 
+  transition: 0.2s; 
+  box-shadow: 0 6px 15px rgba(0,0,0,0.18); 
+  position: relative; 
+  box-sizing: border-box; 
+}
+.card:hover { transform: translateY(-10px); box-shadow: 0 12px 20px rgba(0,0,0,0.25); }
+
+/* 📖 文字可読性向上：カード内の文字を濃い黒色へ */
+.card * {
+  color: #1e272e !important;
+  font-weight: bold !important;
+  text-shadow: none !important;
+}
+
+/* ⚙️ 通常攻撃・通常防御 ➔ 灰色 */
 .card.elem-none.type-attack,
 .card.elem-none.type-defense { 
-  border-color: #8395a7 !important; 
+  border: 3px solid #8395a7 !important; 
   background: #f1f2f6 !important; 
 }
 
-/* 属性ごとのカラフルなテーマ枠線・背景 */
-.card.elem-fire { border-color: #ff4d4d; background: #fff0f0; }
-.card.elem-water { border-color: #339af0; background: #e7f5ff; }
-.card.elem-grass { border-color: #51cf66; background: #ebfbee; }
-.card.elem-thunder { border-color: #fcc419; background: #fff9db; }
-.card.elem-wind { border-color: #20c997; background: #e6fcf5; }
-.card.type-heal { border-color: #ff8787; background: #fff0f6; }
-
-/* 📖 ② カード文字をくっきり濃い色で可読性アップ */
-.card div, .card span {
-  color: #2c3e50 !important;
-  font-weight: bold;
+/* 🔥 火属性 ➔ 赤色 */
+.card.elem-fire { 
+  border: 3px solid #d63031 !important; 
+  background: #fff0f0 !important; 
 }
-.stat-power { color: #d63031 !important; font-weight: 900; }
-.stat-defense { color: #0984e3 !important; font-weight: 900; }
-.stat-mp { color: #d35400 !important; font-weight: 900; }
 
-.elem-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; color: #fff !important; margin-bottom: 4px; }
-.bg-fire { background: #ff4d4d; }
-.bg-water { background: #339af0; }
-.bg-grass { background: #51cf66; }
-.bg-thunder { background: #fcc419; color: #333 !important; }
-.bg-wind { background: #20c997; }
-.bg-none, .bg-none-att, .bg-none-def { background: #8395a7 !important; color: #fff !important; }
-.bg-heal { background: #ff8787; }
+/* 💧 水属性 ➔ 青色 */
+.card.elem-water { 
+  border: 3px solid #0984e3 !important; 
+  background: #e7f5ff !important; 
+}
+
+/* 💖 回復魔法 ➔ ピンク色 */
+.card.type-heal { 
+  border: 3px solid #e84393 !important; 
+  background: #fff0f6 !important; 
+}
+
+/* 🌿 草・⚡ 雷・🌪️ 風属性 */
+.card.elem-grass { border: 3px solid #27ae60 !important; background: #ebfbee !important; }
+.card.elem-thunder { border: 3px solid #f1c40f !important; background: #fff9db !important; }
+.card.elem-wind { border: 3px solid #16a085 !important; background: #e6fcf5 !important; }
+
+/* 🏷️ 属性バッジの背景と文字色 */
+.elem-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; margin-bottom: 4px; }
+.bg-none, .bg-none-att, .bg-none-def { background: #8395a7 !important; color: #ffffff !important; }
+.bg-fire { background: #d63031 !important; color: #ffffff !important; }
+.bg-water { background: #0984e3 !important; color: #ffffff !important; }
+.bg-heal { background: #e84393 !important; color: #ffffff !important; }
+.bg-grass { background: #27ae60 !important; color: #ffffff !important; }
+.bg-thunder { background: #f1c40f !important; color: #000000 !important; }
+.bg-wind { background: #16a085 !important; color: #ffffff !important; }
+
+/* 📊 ステータスカラー設定 */
+.stat-power { color: #d63031 !important; }
+.stat-defense { color: #0984e3 !important; }
+.stat-mp { color: #e67e22 !important; }
 
 /* 攻撃警告バナー */
-.attack-alert-banner { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(255, 255, 255, 0.98); border: 4px solid #ff4d4d; box-shadow: 0 15px 40px rgba(255, 77, 77, 0.3); border-radius: 20px; padding: 25px 50px; z-index: 999; }
-.alert-title { color: #ff4d4d; font-size: 22px; font-weight: bold; }
+.attack-alert-banner { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(255, 255, 255, 0.98); border: 4px solid #d63031; box-shadow: 0 15px 40px rgba(214, 48, 49, 0.3); border-radius: 20px; padding: 25px 50px; z-index: 999; }
+.alert-title { color: #d63031; font-size: 22px; font-weight: bold; }
 .alert-card-name { font-size: 32px; font-weight: bold; margin: 10px 0; color: #2c3e50; }
-.alert-power-val { font-size: 40px; color: #fcc419; font-weight: bold; text-shadow: 1px 1px 0 #000; }
+.alert-power-val { font-size: 40px; color: #f1c40f; font-weight: bold; text-shadow: 1px 1px 0 #000; }
 
 /* ログ・チャットエリア */
-.bottom-area { display: flex; justify-content: center; gap: 15px; max-width: 950px; margin: 0 auto; margin-top: 20px; }
+.bottom-area { display: flex; justify-content: center; gap: 15px; max-width: 950px; margin: 20px auto 0 auto; }
 #log-box, #chat-box { background: rgba(255, 255, 255, 0.9); border: 2px solid #a29bfe; border-radius: 12px; padding: 12px; width: 50%; height: 140px; overflow-y: auto; text-align: left; font-size: 14px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
 #chat-messages { height: 85px; overflow-y: auto; margin-bottom: 8px; }
 .chat-input-area { display: flex; gap: 8px; }
-#chat-input { flex: 1; background: #fff; color: #2c3e50; border: 2px solid #74b9ff; padding: 8px; border-radius: 8px; outline: none; }
+#chat-input { flex: 1; background: #fff; color: #2c3e50 !important; border: 2px solid #74b9ff; padding: 8px; border-radius: 8px; outline: none; }
 #chat-input:focus { border-color: #0984e3; }
-#chat-send { background: #74b9ff; color: #fff; border: none; cursor: pointer; padding: 8px 18px; border-radius: 8px; font-weight: bold; transition: 0.2s; }
+#chat-send { background: #74b9ff; color: #fff !important; border: none; cursor: pointer; padding: 8px 18px; border-radius: 8px; font-weight: bold; transition: 0.2s; }
 #chat-send:hover { background: #0984e3; }
 
-#toast-msg { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ff7675; color: #fff; padding: 12px 25px; border-radius: 12px; display: none; z-index: 1000; font-weight: bold; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
-#pass-btn { padding: 12px 28px; background: #ffeaa7; color: #d63031; border: 2px solid #fdcb6e; border-radius: 12px; cursor: pointer; margin-top: 15px; font-size: 16px; font-weight: bold; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+#toast-msg { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ff7675; color: #fff !important; padding: 12px 25px; border-radius: 12px; display: none; z-index: 1000; font-weight: bold; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+#pass-btn { padding: 12px 28px; background: #ffeaa7; color: #d63031 !important; border: 2px solid #fdcb6e; border-radius: 12px; cursor: pointer; margin-top: 15px; font-size: 16px; font-weight: bold; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
 #pass-btn:hover { background: #fdcb6e; transform: scale(1.05); }
 
-/* 勝利・敗北のド派手巨大オーバーレイ */
+/* 勝利・敗北の巨大オーバーレイ */
 .result-overlay {
-  position: fixed; 
-  top: 0; left: 0; 
-  width: 100vw; height: 100vh;
-  background: rgba(10, 10, 15, 0.9);
-  display: flex; 
-  flex-direction: column; 
-  justify-content: center; 
-  align-items: center;
-  z-index: 10000; 
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 15, 0.9);
+  display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10000;
   animation: resultPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+@keyframes resultPop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+.result-title { font-size: 64px; font-weight: 900; margin-bottom: 25px; letter-spacing: 2px; }
+.win-title { color: #ffdd59 !important; text-shadow: 0 0 20px #ffa502, 0 0 40px #ffdd59, 0 0 80px #ff1493 !important; }
+.lose-title { color: #ff4757 !important; text-shadow: 0 0 20px #ff4757, 0 0 40px #ff6b81 !important; }
+.result-btn { padding: 16px 45px; font-size: 22px; font-weight: bold; background: linear-gradient(135deg, #a55eea, #4bcdda); color: #ffffff !important; border: none; border-radius: 14px; cursor: pointer; box-shadow: 0 0 25px rgba(165, 94, 234, 0.6); transition: transform 0.2s; }
+.result-btn:hover { transform: scale(1.08); }
 
-@keyframes resultPop {
-  0% { transform: scale(0.5); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-.result-title {
-  font-size: 64px;
-  font-weight: 900;
-  margin-bottom: 25px;
-  letter-spacing: 2px;
-}
-
-.win-title {
-  color: #ffdd59;
-  text-shadow: 0 0 20px #ffa502, 0 0 40px #ffdd59, 0 0 80px #ff1493;
-}
-
-.lose-title {
-  color: #ff4757;
-  text-shadow: 0 0 20px #ff4757, 0 0 40px #ff6b81;
-}
-
-.result-btn {
-  padding: 16px 45px;
-  font-size: 22px;
-  font-weight: bold;
-  background: linear-gradient(135deg, #a55eea, #4bcdda);
-  color: #ffffff;
-  border: none;
-  border-radius: 14px;
-  cursor: pointer;
-  box-shadow: 0 0 25px rgba(165, 94, 234, 0.6);
-  transition: transform 0.2s;
-}
-
-.result-btn:hover {
-  transform: scale(1.08);
-}
-
-/* 相手の攻撃時、使える防御カードをド派手に発光させるエフェクト */
+/* 🛡️ ガード推奨発光アニメーション */
 .card.highlight-defend {
   animation: defendPulse 1.2s infinite alternate !important;
   border: 3px solid #00f2fe !important;
   z-index: 100 !important;
 }
-
 @keyframes defendPulse {
-  0% {
-    box-shadow: 0 0 15px #00f2fe, 0 0 30px #4facfe, inset 0 0 10px #00f2fe;
-    transform: translateY(-6px) scale(1.03);
-  }
-  100% {
-    box-shadow: 0 0 30px #00f2fe, 0 0 60px #4facfe, 0 0 90px #00f2fe, inset 0 0 20px #00f2fe;
-    transform: translateY(-14px) scale(1.1);
-  }
+  0% { box-shadow: 0 0 15px #00f2fe, 0 0 30px #4facfe, inset 0 0 10px #00f2fe; transform: translateY(-6px) scale(1.03); }
+  100% { box-shadow: 0 0 30px #00f2fe, 0 0 60px #4facfe, 0 0 90px #00f2fe, inset 0 0 20px #00f2fe; transform: translateY(-14px) scale(1.1); }
 }
-
 .defend-tag {
-  position: absolute;
-  top: -14px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(45deg, #00f2fe, #4facfe);
-  color: #000000;
-  font-weight: 900;
-  font-size: 11px;
-  padding: 3px 10px;
-  border-radius: 12px;
-  box-shadow: 0 0 12px #00f2fe;
-  white-space: nowrap;
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(45deg, #00f2fe, #4facfe); color: #000000 !important;
+  font-weight: 900; font-size: 11px; padding: 3px 10px; border-radius: 12px;
+  box-shadow: 0 0 12px #00f2fe; white-space: nowrap;
 }
