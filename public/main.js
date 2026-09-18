@@ -132,3 +132,27 @@ socket.on("receiveChat", (data) => {
   cb.innerHTML += `<div><strong style="color:${color}">${data.sender}:</strong> ${data.message}</div>`;
   cb.scrollTop = cb.scrollHeight;
 });
+// ゲーム終了（勝敗決定）イベントの受信
+socket.on("gameOver", (data) => {
+  const isWinner = (data.winner === myPlayerNumber);
+  showResultModal(isWinner);
+});
+
+function showResultModal(isWinner) {
+  let modal = document.getElementById("result-modal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "result-modal";
+    modal.className = "result-overlay";
+    document.body.appendChild(modal);
+  }
+
+  const titleText = isWinner ? "🎉 相手に勝ちました！" : "💀 敗北しました…";
+  const titleClass = isWinner ? "win-title" : "lose-title";
+
+  modal.innerHTML = `
+    <div class="result-title ${titleClass}">${titleText}</div>
+    <button class="result-btn" onclick="location.reload()">もう一度遊ぶ</button>
+  `;
+  modal.style.display = "flex";
+}
