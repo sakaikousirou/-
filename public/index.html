@@ -4,59 +4,30 @@
     <meta charset="UTF-8">
     <title>カオスカードバトル</title>
     <style>
-        /* 画像に合わせた水色グラデーション背景 */
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: linear-gradient(135deg, #d4ebf2 0%, #a1c4fd 100%); 
-            color: #333; 
-            margin: 0; 
-            padding: 20px; 
-            min-height: 100vh;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #2c3e50; color: #ecf0f1; margin: 0; padding: 20px; }
         .container { max-width: 900px; margin: 0 auto; }
-        
-        /* パネルも明るめのデザインに変更 */
-        .panel { background: rgba(255, 255, 255, 0.6); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .battle-panel-bg { background: #34495e; color: #ecf0f1; } /* バトル画面は元のダーク系を維持 */
-        
+        .panel { background: #34495e; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         button { padding: 10px 15px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; font-weight: bold;}
         button:hover { background: #c0392b; }
-        input, select { padding: 10px; margin: 5px; border-radius: 4px; border: 1px solid #ccc; }
+        input, select { padding: 10px; margin: 5px; border-radius: 4px; border: none; }
         .hidden { display: none; }
         
         /* ログ & チャット */
-        .log-box { height: 150px; overflow-y: scroll; background: #1a252f; color: #ecf0f1; padding: 10px; border-radius: 4px; font-family: monospace; margin-bottom: 10px; }
-        .chat-box { height: 100px; overflow-y: scroll; background: #1a252f; color: #ecf0f1; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+        .log-box { height: 150px; overflow-y: scroll; background: #1a252f; padding: 10px; border-radius: 4px; font-family: monospace; margin-bottom: 10px; }
+        .chat-box { height: 100px; overflow-y: scroll; background: #1a252f; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
         
-        /* キャラクター選択用カードのデザイン（画像再現） */
-        .card-container { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 20px; justify-content: center; }
-        .char-card { 
-            background: #ffffff; 
-            color: #333; 
-            padding: 15px 10px; 
-            border-radius: 8px; 
-            width: 150px; 
-            cursor: pointer; 
-            border: 2px solid #b3d4fc; 
-            text-align: center; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .char-card:hover { border: 2px solid #3498db; transform: translateY(-2px); transition: 0.2s;}
-        
-        /* バトル中のカードデザイン */
-        .battle-card { background: #ecf0f1; color: #2c3e50; padding: 10px; border-radius: 6px; width: 140px; cursor: pointer; border: 2px solid transparent; text-align: center; display: flex; flex-direction: column; align-items: center; }
-        .battle-card:hover { border: 2px solid #e74c3c; transform: translateY(-2px); transition: 0.2s;}
-        .battle-card.attack { border-top: 4px solid #e74c3c; }
-        .battle-card.defense { border-top: 4px solid #3498db; }
-        .battle-card.heal { border-top: 4px solid #2ecc71; }
+        /* カードデザイン */
+        .card-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; justify-content: center; }
+        .card { background: #ecf0f1; color: #2c3e50; padding: 10px; border-radius: 6px; width: 140px; cursor: pointer; border: 2px solid transparent; text-align: center; display: flex; flex-direction: column; align-items: center;}
+        .card:hover { border: 2px solid #e74c3c; transform: translateY(-2px); transition: 0.2s;}
+        .card.attack { border-top: 4px solid #e74c3c; }
+        .card.defense { border-top: 4px solid #3498db; }
+        .card.heal { border-top: 4px solid #2ecc71; }
         
         /* ステータスエリア */
         .status-area { display: flex; justify-content: space-between; margin-bottom: 15px; }
         .player-status { background: #2c3e50; padding: 10px; border-radius: 6px; width: 48%; border: 1px solid #7f8c8d; }
-        .player-box { display: flex; align-items: center; background: #1a252f; margin-bottom: 8px; padding: 8px; border-radius: 6px; border: 2px solid transparent; color: white;}
+        .player-box { display: flex; align-items: center; background: #1a252f; margin-bottom: 8px; padding: 8px; border-radius: 6px; border: 2px solid transparent; }
         .player-box.active-turn { border: 2px solid #f1c40f; box-shadow: 0 0 10px rgba(241,196,15,0.5); }
         .player-info { line-height: 1.4; }
         
@@ -65,9 +36,10 @@
 </head>
 <body>
 <div class="container">
+    <h1 style="text-align: center;">🔥 カオスカードバトル</h1>
+
     <!-- ログイン画面 -->
-    <div id="login-panel" class="panel" style="text-align: center; background: white;">
-        <h2>🔥 カオスカードバトル</h2>
+    <div id="login-panel" class="panel" style="text-align: center;">
         <h3>ルームに参加</h3>
         <input type="number" id="room-input" placeholder="ルーム番号 (例: 1)" value="1">
         <select id="mode-input">
@@ -79,13 +51,13 @@
     </div>
 
     <!-- キャラクター選択画面 -->
-    <div id="char-select-panel" class="hidden">
-        <h2 style="text-align: center;">戦うキャラクターを選択してください</h2>
+    <div id="char-select-panel" class="panel hidden">
+        <h3 style="text-align: center;">キャラクターを選択してください</h3>
         <div id="char-list" class="card-container"></div>
     </div>
 
     <!-- バトル画面 -->
-    <div id="battle-panel" class="panel battle-panel-bg hidden">
+    <div id="battle-panel" class="panel hidden">
         <div class="timer">残り時間: <span id="timer-display">20</span>秒</div>
         
         <div class="status-area">
@@ -99,11 +71,11 @@
         <div style="text-align: center;">
             <button onclick="passTurn()" style="background: #95a5a6; margin-bottom: 15px;">🍃 何もしない（パス / 防御放棄）</button>
         </div>
-        <div id="hand-cards" class="card-container" style="margin-top:0;"></div>
+        <div id="hand-cards" class="card-container"></div>
 
         <hr style="border-color: #7f8c8d; margin: 30px 0 20px;">
         
-        <h3>💬 チャット（勝者限定煽り機能付き）</h3>
+        <h3>💬 チャット</h3>
         <div class="chat-box" id="chat-log"></div>
         <div style="display: flex; gap: 10px;">
             <input type="text" id="chat-input" placeholder="メッセージを入力..." style="flex-grow: 1; color: black;">
@@ -134,12 +106,8 @@
         chatInput: document.getElementById('chat-input')
     };
 
-    // 紫色の人型シルエットSVG
-    const userIconSvg = `
-        <svg viewBox="0 0 24 24" width="36" height="36" fill="#4a235a">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-        </svg>
-    `;
+    // ドット絵生成関数
+    const getAvatarUrl = (seed) => `https://api.dicebear.com/9.x/pixel-art/svg?seed=${seed}`;
 
     function addLog(msg, element = ui.gameLog) {
         const div = document.createElement('div');
@@ -184,7 +152,6 @@
     socket.on('errorMsg', msg => alert('エラー: ' + msg));
     socket.on('playerInfo', data => myPlayerNumber = data.playerNumber);
 
-    // キャラクター選択画面の描画（画像デザインを再現）
     socket.on('selectCharacterPhase', data => {
         ui.login.classList.add('hidden');
         ui.charSelect.classList.remove('hidden');
@@ -192,13 +159,13 @@
         
         for (const [key, char] of Object.entries(data.characters)) {
             const card = document.createElement('div');
-            card.className = 'char-card';
+            card.className = 'card';
+            // ドット絵アイコンを追加
             card.innerHTML = `
-                <div style="margin-bottom: 5px;">${userIconSvg}</div>
-                <strong style="font-size: 13px;">${char.name}</strong>
-                <div style="font-size: 12px; margin: 4px 0 0; color: #e74c3c;">HP: ${char.hp}</div>
-                <div style="font-size: 12px; margin: 0 0 8px; color: #3498db;">MP: ${char.mp}</div>
-                <small style="font-size: 10px; color: #666; display: block;">${char.desc}</small>
+                <img src="${getAvatarUrl(key)}" width="48" height="48" style="image-rendering: pixelated; border-radius: 4px; background: #bdc3c7; margin-bottom: 5px;">
+                <strong>${char.name}</strong>
+                <div style="font-size: 14px; margin: 5px 0; font-weight: bold; color: #c0392b;">HP: ${char.hp} / MP: ${char.mp}</div>
+                <small style="font-size: 11px;">${char.desc}</small>
             `;
             card.onclick = () => selectCharacter(key);
             ui.charList.appendChild(card);
@@ -243,11 +210,9 @@
             const pDiv = document.createElement('div');
             pDiv.className = `player-box ${isTurn ? 'active-turn' : ''}`;
             
-            // バトル画面でも紫のアイコンを使用
+            // バトル画面にもドット絵アイコンを追加
             pDiv.innerHTML = `
-                <div style="margin-right: 10px; ${p.isDead ? 'opacity:0.3;' : ''}">
-                    <svg viewBox="0 0 24 24" width="32" height="32" fill="#bdc3c7"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                </div>
+                <img src="${getAvatarUrl(p.charKey)}" width="40" height="40" style="image-rendering: pixelated; border-radius: 4px; background: #bdc3c7; margin-right: 10px; ${p.isDead ? 'filter: grayscale(100%); opacity: 0.5;' : ''}">
                 <div class="player-info" style="${p.isDead ? 'opacity:0.5;' : ''}">
                     <strong style="${isTurn ? 'color:#f1c40f;' : ''}">${p.char} ${pNum === myPlayerNumber ? '(自分)' : ''}</strong> ${p.isDead ? '💀' : ''}<br>
                     <span style="color:#e74c3c;">HP: ${p.hp}</span> / <span style="color:#3498db;">MP: ${p.mp}</span>
@@ -262,7 +227,7 @@
         if (myData && !myData.isDead) {
             myData.hand.forEach(card => {
                 const cDiv = document.createElement('div');
-                cDiv.className = `battle-card ${card.type}`;
+                cDiv.className = `card ${card.type}`;
                 cDiv.innerHTML = `
                     <strong>${card.name}</strong>
                     <small style="margin: 4px 0; display:block; color:#7f8c8d;">${card.category}</small>
