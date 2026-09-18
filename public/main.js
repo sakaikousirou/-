@@ -15,7 +15,7 @@ const PIXEL_DATA = {
   monk:   ["...YYYY...","..YYYYYY..","..YYOOYY..",".OOOOOOOO.","..YYYYYY..",".RR.YY.RR.","..YYYYYY..","...YYYY...","...BBBB..."]
 };
 
-const COLORS = { R:"#d32f2f", B:"#212121", O:"#ffcc80", Y:"#ffeb3b", G:"#4caf50", S:"#9e9e9e", P:"#9c27b0", W:"#ffffff", C:"#00bcd4", D:"#795548", ".":"transparent" };
+const COLORS = { R:"#ff4757", B:"#2f3640", O:"#ffdd59", Y:"#ffa502", G:"#2ed573", S:"#a4b0be", P:"#a55eea", W:"#ffffff", C:"#00d2d3", D:"#747d8c", ".":"transparent" };
 
 function drawPixelArt(canvasId, charKey) {
   const canvas = document.getElementById(canvasId);
@@ -47,7 +47,7 @@ socket.on("selectCharacterPhase", (data) => {
   Object.keys(data.characters).forEach(key => {
     const c = data.characters[key];
     const el = document.createElement("div"); el.className = "char-card";
-    el.innerHTML = `<canvas id="cvs-${key}" width="64" height="64"></canvas><h4 style="margin:5px 0; color:#2c3e50">${c.name}</h4><div style="font-size:12px; margin-bottom:5px; color:#ff7675; font-weight:bold;">HP:${c.hp} / MP:${c.mp}</div><div style="font-size:11px; color:#636e72;">${c.desc}</div>`;
+    el.innerHTML = `<canvas id="cvs-${key}" width="64" height="64"></canvas><h4 style="margin:5px 0; color:#fff">${c.name}</h4><div style="font-size:12px; margin-bottom:5px; color:#ff4757; font-weight:bold;">HP:${c.hp} / MP:${c.mp}</div><div style="font-size:11px; color:#a4b0be;">${c.desc}</div>`;
     el.onclick = () => { socket.emit("selectCharacter", { room: currentRoom, playerNumber: myPlayerNumber, charKey: key }); document.getElementById("char-select-screen").style.display = "none"; document.getElementById("game-screen").style.display = "block"; };
     grid.appendChild(el);
     setTimeout(() => drawPixelArt(`cvs-${key}`, key), 50);
@@ -71,40 +71,52 @@ function updateView(data) {
   const guide = document.getElementById("turn-guide-text");
   if(isMyTurn) {
     guide.innerText = data.phase === "ATTACK" ? "⚔️ あなたの攻撃ターン！" : "🛡️ あなたの防御ターン！";
-    guide.style.color = data.phase === "ATTACK" ? "#d63031" : "#0984e3";
+    guide.style.color = data.phase === "ATTACK" ? "#ff4757" : "#1e90ff";
   } else {
     guide.innerText = "⌛ 相手の行動を待っています...";
-    guide.style.color = "#636e72";
+    guide.style.color = "#a4b0be";
   }
 
   const banner = document.getElementById("center-attack-banner");
-  if(data.phase === "DEFENSE" && data.pendingAttack && isMyTurn) {
+  const isDefensePhase = (data.phase === "DEFENSE" && isMyTurn);
+
+  if(isDefensePhase && data.pendingAttack) {
     document.getElementById("alert-card-name").innerText = data.pendingAttack.card.name;
     document.getElementById("alert-power-val").innerText = data.pendingAttack.card.power;
     banner.style.display = "block";
   } else banner.style.display = "none";
 
-  if(myD && myD.hand) renderHand(myD.hand);
+  if(myD && myD.hand) renderHand(myD.hand, isDefensePhase, myD.mp);
 }
 
-// 属性・種類のバッジとカラフル描画
-function renderHand(handCards) {
+// 相手の攻撃時には使用可能な防御カードを大きく発光させる
+function renderHand(handCards, isDefensePhase = false, myMp = 0) {
   const c = document.getElementById("hand-container"); c.innerHTML = "";
   handCards.forEach(card => {
     const el = document.createElement("div");
     const elemClass = `elem-${card.element || 'none'}`;
     const typeClass = `type-${card.type}`;
-    el.className = `card ${elemClass} ${typeClass}`;
+    
+    // 防御フェーズかつMPが足りている防御カードか判定
+    const isDefendable = isDefensePhase && card.type === "defense" && card.mp <= myMp;
 
-    let badgeClass = "bg-none";
+    el.className = `card ${elemClass} ${typeClass} ${isDefendable ? 'highlight-defend' : ''}`;
+
+    let badgeClass = "bg-none-att";
     if (card.type === "heal") badgeClass = "bg-heal";
+    else if (card.type === "defense" && card.element === "none") badgeClass = "bg-none-def";
     else if (card.element && card.element !== "none") badgeClass = `bg-${card.element}`;
 
+    const statLabel = card.type === "defense" ? `<span class="stat-defense">🛡️${card.power}</span>` : `<span class="stat-power">⚔️${card.power}</span>`;
+
     el.innerHTML = `
+      ${isDefendable ? '<div class="defend-tag">🛡️ これでガード！</div>' : ''}
       <span class="elem-badge ${badgeClass}">${card.category}</span>
-      <div style="font-weight:bold; margin:3px 0; font-size:13px; color:#2c3e50;">${card.name}</div>
-      <div style="color:#2c3e50; font-weight:bold;">${card.type==='defense'?'軽減':'威力'}:${card.power}</div>
-      <div style="font-size:12px; color:#0984e3; font-weight:bold; margin-top:2px;">MP:${card.mp}</div>
+      <div style="font-weight:bold; margin:4px 0; font-size:12px; color:#ffffff; height:34px; display:flex; align-items:center; justify-content:center; line-height:1.2;">${card.name}</div>
+      <div class="card-stats">
+        ${statLabel}
+        <span class="stat-mp">💧MP ${card.mp}</span>
+      </div>
     `;
     el.onclick = () => socket.emit("playCard", { room: currentRoom, playerNumber: myPlayerNumber, cardInstanceId: card.instanceId });
     c.appendChild(el);
@@ -128,11 +140,12 @@ document.getElementById("chat-input").addEventListener("keypress", function(even
 });
 socket.on("receiveChat", (data) => {
   const cb = document.getElementById("chat-messages");
-  const color = data.playerNumber === myPlayerNumber ? "#0984e3" : "#d63031";
+  const color = data.playerNumber === myPlayerNumber ? "#70a1ff" : "#ff4757";
   cb.innerHTML += `<div><strong style="color:${color}">${data.sender}:</strong> ${data.message}</div>`;
   cb.scrollTop = cb.scrollHeight;
 });
-// ゲーム終了（勝敗決定）イベントの受信
+
+// 勝敗判定ポップアップ
 socket.on("gameOver", (data) => {
   const isWinner = (data.winner === myPlayerNumber);
   showResultModal(isWinner);
