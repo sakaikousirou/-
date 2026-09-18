@@ -10,26 +10,23 @@
   <div id="toast-msg"></div>
 
   <div id="char-select-screen">
-    <h2>キャラクターを選択してください（全10体）</h2>
+    <h2 style="color: #ffcc00;">キャラクターを選択してください（全10体）</h2>
     <div id="char-grid"></div>
   </div>
 
   <div id="game-screen" style="display: none;">
-    <h1>対戦型ゲーム</h1>
     <div id="timer-display">残り時間: <span id="timer-val">20</span>秒</div>
 
     <div class="battle-field">
       <div class="player-box" id="my-box">
-        <div class="badge">【あなた】</div>
+        <canvas id="my-canvas" width="80" height="80"></canvas>
         <div class="char-name" id="my-name">-</div>
         <div class="stat">HP: <span id="my-hp">0</span></div>
         <div class="stat">MP: <span id="my-mp">0</span></div>
       </div>
-
       <div class="vs-text">VS</div>
-
       <div class="player-box" id="enemy-box">
-        <div class="badge enemy">【相手】</div>
+        <canvas id="enemy-canvas" width="80" height="80"></canvas>
         <div class="char-name" id="enemy-name">-</div>
         <div class="stat">HP: <span id="enemy-hp">0</span></div>
         <div class="stat">MP: <span id="enemy-mp">0</span></div>
@@ -40,16 +37,24 @@
       <div class="alert-title">⚠️ 相手の攻撃が来ます！ ⚠️</div>
       <div class="alert-card-name" id="alert-card-name">―</div>
       <div class="alert-power-box">威力: <span id="alert-power-val">0</span></div>
-      <div class="alert-subtext">手札から防御カードを選んでガードしてください！</div>
     </div>
 
     <div class="hand-section">
       <h3 id="turn-guide-text">あなたの手札</h3>
       <div id="hand-container"></div>
-      <button id="pass-btn">パス（ガードせずに受ける）</button>
+      <button id="pass-btn">パスする</button>
     </div>
 
-    <div id="log-box"></div>
+    <div class="bottom-area">
+      <div id="log-box"></div>
+      <div id="chat-box">
+        <div id="chat-messages"></div>
+        <div class="chat-input-area">
+          <input type="text" id="chat-input" placeholder="メッセージを入力...">
+          <button id="chat-send">送信</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
