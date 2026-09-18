@@ -1,206 +1,260 @@
 const socket = io();
 
-let currentRoom = null;
 let myPlayerNumber = null;
-let myHand = [];
-let currentTurn = 1;
+let currentRoom = null;
+let selectedPendingCard = null; 
+let latestGameData = null;
 
-// ドット絵データ（鈴木ゴンザレス・ウィザード・ローグ）
-const PIXEL_DATA = {
-  suzuki: [
-    "....RRRR....",
-    "...RRRRRR...",
-    "...RROORR...",
-    "...OOOOOO...",
-    "..RRRRRRRR..",
-    "..RRRRRRRR..",
-    "..RRRRRRRR..",
-    "...RR..RR...",
-    "...BB..BB..."
-  ],
-  wizard: [
-    "....BBBB....",
-    "...BBBBBB...",
-    "..BBBBBBBB..",
-    "...OOOOOO...",
-    "..YYYYYYYY..",
-    "..YYYYYYYY..",
-    "..YYYYYYYY..",
-    "...YY..YY...",
-    "...BB..BB..."
-  ],
-  rogue: [
-    "....GGGG....",
-    "...GGGGGG...",
-    "...GGOOGG...",
-    "...OOOOOO...",
-    "..GGGGGGGG..",
-    "..GGGGGGGG..",
-    "..GGGGGGGG..",
-    "...GG..GG...",
-    "...BB..BB..."
-  ]
-};
+// UI要素の取得
+const joinScreen = document.getElementById("join-screen");
+const charSelectScreen = document.getElementById("char-select-screen");
+const battleScreen = document.getElementById("battle-screen");
+const statusMsg = document.getElementById("status-msg");
+const charGrid = document.getElementById("char-grid");
+const battleField = document.getElementById("battle-field");
+const handContainer = document.getElementById("hand-container");
+const logBox = document.getElementById("log-box");
+const chatMessages = document.getElementById("chat-messages");
+const turnIndicator = document.getElementById("turn-indicator");
+const timerDisplay = document.getElementById("timer-display");
+const toastMsg = document.getElementById("toast-msg");
+const targetModal = document.getElementById("target-modal");
+const targetList = document.getElementById("target-list");
 
-const COLOR_MAP = {
-  "R": "#d32f2f", // 赤 (鈴木ゴンザレス)
-  "O": "#ffcc80", // 肌色
-  "B": "#212121", // 黒/服
-  "Y": "#7b1fa2", // 紫 (ウィザード)
-  "G": "#388e3c", // 緑 (ローグ)
-  ".": "transparent"
-};
+// 1. ルーム入室
+document.getElementById("btn-1v1").onclick = () => joinRoom("1v1");
+document.getElementById("btn-2v2").onclick = () => joinRoom("2v2");
 
-// Canvasにドット絵を描画する関数
-function drawPixelArt(canvasId, charKey) {
-  const canvas = document.getElementById(canvasId);
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const pixels = PIXEL_DATA[charKey] || PIXEL_DATA.suzuki;
-  const pixelSize = 7;
-  const offsetX = (canvas.width - 12 * pixelSize) / 2;
-  const offsetY = (canvas.height - 9 * pixelSize) / 2;
-
-  pixels.forEach((row, y) => {
-    for (let x = 0; x < row.length; x++) {
-      const char = row[x];
-      if (char !== ".") {
-        ctx.fillStyle = COLOR_MAP[char] || "#fff";
-        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, pixelSize, pixelSize);
-      }
-    }
-  });
+function joinRoom(mode) {
+  const roomNum = document.getElementById("room-select").value;
+  socket.emit("joinRoom", { roomNumber: roomNum, mode: mode });
+  document.getElementById("btn-1v1").disabled = true;
+  document.getElementById("btn-2v2").disabled = true;
+  statusMsg.innerText = "通信中...";
 }
 
-// キャラ選択画面の描画
+socket.on("status", (msg) => statusMsg.innerText = msg);
+socket.on("errorMsg", (msg) => showToast(msg));
+
+// 2. キャラ選択画面
 socket.on("selectCharacterPhase", (data) => {
   currentRoom = data.room;
   myPlayerNumber = data.playerNumber;
-
-  document.getElementById("status-msg").style.display = "none";
-  document.getElementById("select-screen").style.display = "block";
-
-  const container = document.getElementById("char-list");
-  container.innerHTML = "";
-
+  joinScreen.style.display = "none";
+  charSelectScreen.style.display = "block";
+  
+  charGrid.innerHTML = "";
   Object.keys(data.characters).forEach(key => {
     const char = data.characters[key];
     const card = document.createElement("div");
     card.className = "char-card";
-    card.onclick = () => selectChar(key);
-
     card.innerHTML = `
-      <canvas id="canvas-select-${key}" class="pixel-art" width="70" height="70"></canvas>
-      <div style="font-weight:bold; margin-top:5px;">${char.name}</div>
-      <div style="font-size:0.8rem; color:#aaa;">HP:${char.hp} / MP:${char.mp}</div>
-      <div style="font-size:0.7rem; color:#ddd; margin-top:4px;">${char.desc}</div>
+      <div style="font-size: 30px;">👤</div>
+      <div style="font-weight: bold; margin-top: 5px; font-size:14px; color: #1e272e;">${char.name}</div>
+      <div style="font-size: 12px; color: #d63031;">HP: ${char.hp}</div>
+      <div style="font-size: 12px; color: #0984e3;">MP: ${char.mp}</div>
+      <div style="font-size: 10px; color: #636e72; margin-top: 5px;">${char.desc}</div>
     `;
-    container.appendChild(card);
-    setTimeout(() => drawPixelArt(`canvas-select-${key}`, key), 50);
+    card.onclick = () => {
+      socket.emit("selectCharacter", { room: currentRoom, playerNumber: myPlayerNumber, charKey: key });
+      charGrid.innerHTML = "<h3>他のプレイヤーが選ぶのを待っています...</h3>";
+    };
+    charGrid.appendChild(card);
   });
 });
 
-function selectChar(charKey) {
-  socket.emit("selectCharacter", { room: currentRoom, playerNumber: myPlayerNumber, charKey });
-  document.getElementById("select-screen").innerHTML = "<h3 style='color:#00e676;'>相手の選択を待っています...</h3>";
-}
-
-// ゲーム開始
-socket.on("gameStart", (data) => {
-  document.getElementById("select-screen").style.display = "none";
-  document.getElementById("battle-screen").style.display = "block";
-  updateState(data);
-});
-
-// 状態更新
+// 3. バトル開始＆画面更新
+socket.on("gameStart", (data) => { latestGameData = data; updateBattleUI(data); });
 socket.on("gameStateUpdate", (data) => {
-  if (data.log) {
-    const logBox = document.getElementById("log-box");
-    logBox.innerHTML += `<div>${data.log}</div>`;
-    logBox.scrollTop = logBox.scrollHeight;
-  }
-  updateState(data);
+  latestGameData = data;
+  updateBattleUI(data);
+  if (data.log) addLog(data.log);
 });
 
-function updateState(data) {
-  currentTurn = data.currentTurn;
-  const p1 = data.players[1];
-  const p2 = data.players[2];
+function updateBattleUI(data) {
+  charSelectScreen.style.display = "none";
+  battleScreen.style.display = "block";
 
-  // プレイヤー1情報
-  document.getElementById("p1-name").innerText = p1.char || "P1";
-  document.getElementById("p1-hp").innerText = p1.hp;
-  document.getElementById("p1-mp").innerText = p1.mp;
-  document.getElementById("p1-hp-fill").style.width = `${Math.max(0, (p1.hp / 60) * 100)}%`;
-  document.getElementById("p1-mp-fill").style.width = `${Math.min(100, (p1.mp / 30) * 100)}%`;
-  drawPixelArt("p1-canvas", p1.charKey || "suzuki");
+  const players = data.players;
+  battleField.innerHTML = "";
+  
+  // プレイヤー情報表示 (2人〜4人)
+  Object.values(players).forEach(p => {
+    const box = document.createElement("div");
+    box.className = "player-box " + (p.isDead ? "dead" : "");
+    if (p.isDead) box.style.opacity = "0.5";
+    
+    let teamColor = p.team === "A" ? "#0984e3" : "#d63031"; // 青と赤
+    box.style.borderColor = teamColor;
 
-  // プレイヤー2情報
-  document.getElementById("p2-name").innerText = p2.char || "P2";
-  document.getElementById("p2-hp").innerText = p2.hp;
-  document.getElementById("p2-mp").innerText = p2.mp;
-  document.getElementById("p2-hp-fill").style.width = `${Math.max(0, (p2.hp / 60) * 100)}%`;
-  document.getElementById("p2-mp-fill").style.width = `${Math.min(100, (p2.mp / 30) * 100)}%`;
-  drawPixelArt("p2-canvas", p2.charKey || "suzuki");
-
-  // 手札更新
-  const myData = data.players[myPlayerNumber];
-  if (myData && myData.hand) {
-    myHand = myData.hand;
-    renderHand(myData.mp);
-  }
-
-  // ターン案内
-  if (currentTurn === myPlayerNumber) {
-    document.getElementById("status-msg").innerText = "あなたのターンです！技を選んでください";
-    document.getElementById("status-msg").style.color = "#00e676";
-  } else {
-    document.getElementById("status-msg").innerText = "相手のターンです...";
-    document.getElementById("status-msg").style.color = "#ff9800";
-  }
-}
-
-function renderHand(myMp) {
-  const container = document.getElementById("hand-list");
-  container.innerHTML = "";
-
-  myHand.forEach(card => {
-    const isMyTurn = (currentTurn === myPlayerNumber);
-    const canAfford = (myMp >= card.mp);
-    const disabled = !isMyTurn || !canAfford;
-
-    const div = document.createElement("div");
-    div.className = `card-item ${disabled ? "disabled" : ""}`;
-    if (!disabled) {
-      div.onclick = () => playCard(card.instanceId);
-    }
-
-    div.innerHTML = `
-      <div class="card-cat">${card.category}</div>
-      <div class="card-name">${card.name}</div>
-      <div>威:${card.power}</div>
-      <div class="card-cost">MP ${card.mp}</div>
+    box.innerHTML = `
+      <h4 style="margin:0; color:${teamColor};">Team ${p.team}</h4>
+      <div style="font-weight: bold; font-size: 18px;">${p.char} ${p.id === socket.id ? "(あなた)" : ""}</div>
+      <div style="color: #d63031; font-weight:900; font-size: 18px;">HP: ${p.hp}</div>
+      <div style="color: #0984e3; font-weight:900; font-size: 18px;">MP: ${p.mp}</div>
     `;
-    container.appendChild(div);
+    battleField.appendChild(box);
   });
+
+  // 手札の描画
+  const myData = players[myPlayerNumber];
+  handContainer.innerHTML = "";
+  
+  if (!myData.isDead) {
+    myData.hand.forEach(card => {
+      const cardDiv = document.createElement("div");
+      cardDiv.className = `card elem-${card.element} type-${card.type}`;
+      
+      let statColor = card.type === "defense" ? "stat-defense" : card.type === "heal" ? "stat-heal" : "stat-power";
+      let statIcon = card.type === "defense" ? "🛡️" : card.type === "heal" ? "✨" : "⚔️";
+
+      cardDiv.innerHTML = `
+        <div class="elem-badge bg-${card.element === 'none' ? (card.type === 'attack' ? 'none-att' : 'none-def') : card.element}">${card.category}</div>
+        <div style="font-size: 14px; margin: 5px 0;">${card.name}</div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 10px;">
+          <span class="${statColor}">${statIcon}${card.power}</span>
+          <span class="stat-mp">💧MP ${card.mp}</span>
+        </div>
+      `;
+      
+      if (data.phase === "DEFENSE" && data.currentTurn === myPlayerNumber && card.type === "defense") {
+        cardDiv.classList.add("highlight-defend");
+        const tag = document.createElement("div");
+        tag.className = "defend-tag";
+        tag.innerText = "ガード推奨!";
+        cardDiv.appendChild(tag);
+      }
+
+      cardDiv.onclick = () => handleCardClick(card, data);
+      handContainer.appendChild(cardDiv);
+    });
+  } else {
+    handContainer.innerHTML = "<h3>あなたは倒れました...💀</h3>";
+  }
+
+  // ターンの表示
+  if (data.phase === "END") {
+    turnIndicator.innerHTML = `🏆 チーム ${data.winnerTeam} の勝利！`;
+  } else if (data.phase === "DEFENSE") {
+    turnIndicator.innerHTML = `⚠️ ${players[data.currentTurn].char} は防御してください！`;
+  } else {
+    turnIndicator.innerHTML = `⚔️ ${players[data.currentTurn].char} の攻撃ターン！`;
+  }
 }
 
-function playCard(cardInstanceId) {
-  if (currentTurn !== myPlayerNumber) return;
-  socket.emit("playCard", { room: currentRoom, playerNumber: myPlayerNumber, cardInstanceId });
+// 4. ターゲット（対象）選択処理
+function handleCardClick(card, gameData) {
+  if (gameData.currentTurn !== myPlayerNumber) return showToast("あなたのターンではありません！");
+  
+  if (gameData.phase === "DEFENSE") {
+    socket.emit("playCard", { room: currentRoom, playerNumber: myPlayerNumber, cardInstanceId: card.instanceId });
+    return;
+  }
+
+  // 攻撃 or 回復はターゲット選択
+  if (card.type === "attack" || card.type === "heal") {
+    selectedPendingCard = card;
+    openTargetModal(gameData.players);
+  }
 }
 
-function passTurn() {
-  if (currentTurn !== myPlayerNumber) return;
+function openTargetModal(players) {
+  targetList.innerHTML = "";
+  Object.keys(players).forEach(pNum => {
+    const p = players[pNum];
+    if (p.isDead) return; // 倒れた人には使えない
+    
+    const btn = document.createElement("button");
+    btn.className = "result-btn";
+    btn.style.margin = "5px 0";
+    btn.style.padding = "10px";
+    btn.style.fontSize = "16px";
+    btn.style.width = "100%";
+    
+    // チーム色に合わせる
+    if (p.team === "A") btn.style.background = "linear-gradient(135deg, #74b9ff, #0984e3)";
+    else btn.style.background = "linear-gradient(135deg, #ff7675, #d63031)";
+
+    btn.innerHTML = `Team ${p.team}: ${p.char} ${parseInt(pNum) === myPlayerNumber ? "(自分)" : ""}`;
+    
+    btn.onclick = () => {
+      socket.emit("playCard", {
+        room: currentRoom,
+        playerNumber: myPlayerNumber,
+        cardInstanceId: selectedPendingCard.instanceId,
+        targetPlayerNumber: parseInt(pNum)
+      });
+      targetModal.style.display = "none";
+      selectedPendingCard = null;
+    };
+    targetList.appendChild(btn);
+  });
+  targetModal.style.display = "block";
+}
+
+document.getElementById("cancel-target").onclick = () => {
+  targetModal.style.display = "none";
+  selectedPendingCard = null;
+};
+
+// 5. タイマーとパス
+socket.on("timerUpdate", (time) => timerDisplay.textContent = `残り時間: ${time}秒`);
+document.getElementById("pass-btn").onclick = () => {
   socket.emit("passTurn", { room: currentRoom, playerNumber: myPlayerNumber });
+};
+
+// 6. ログ・チャット
+function addLog(msg) {
+  const p = document.createElement("div");
+  p.style.padding = "6px 0";
+  p.style.borderBottom = "1px dashed #ccc";
+  p.innerText = msg;
+  logBox.appendChild(p);
+  logBox.scrollTop = logBox.scrollHeight;
 }
 
-socket.on("timerUpdate", (sec) => {
-  document.getElementById("timer-display").innerText = `残り時間: ${sec}秒`;
+socket.on("receiveChat", (data) => {
+  const p = document.createElement("div");
+  p.style.marginBottom = "5px";
+  p.innerHTML = `<strong style="color:${data.isSelf ? '#0984e3' : '#d63031'}">${data.sender}:</strong> ${data.message}`;
+  chatMessages.appendChild(p);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
 });
 
-socket.on("errorMsg", (msg) => {
-  alert(msg);
+document.getElementById("chat-send").onclick = () => {
+  const input = document.getElementById("chat-input");
+  if (input.value.trim() !== "") {
+    socket.emit("sendChat", { room: currentRoom, playerNumber: myPlayerNumber, message: input.value });
+    input.value = "";
+  }
+};
+document.getElementById("chat-input").addEventListener("keypress", (e) => {
+  if (e.key === "Enter") document.getElementById("chat-send").click();
 });
+
+// 7. 勝敗結果の演出
+socket.on("gameOver", (data) => {
+  const overlay = document.getElementById("result-overlay");
+  const text = document.getElementById("result-text");
+  
+  // チャットができるように背景だけ出す（ボタン類は隠さないように透明度高め）
+  overlay.style.display = "flex";
+  overlay.style.background = "rgba(10, 10, 15, 0.7)";
+  overlay.style.pointerEvents = "none"; // 背後のチャットを触れるようにする
+  overlay.querySelector(".result-btn").style.pointerEvents = "auto";
+  
+  const myTeam = latestGameData.players[myPlayerNumber].team;
+  if (data.winnerTeam === myTeam) {
+    text.innerText = "🎉 YOU WIN !! 🎉";
+    text.className = "result-title win-title";
+  } else {
+    text.innerText = "💀 YOU LOSE... 💀";
+    text.className = "result-title lose-title";
+  }
+});
+
+function showToast(msg) {
+  toastMsg.innerText = msg;
+  toastMsg.style.display = "block";
+  setTimeout(() => toastMsg.style.display = "none", 3000);
+}
