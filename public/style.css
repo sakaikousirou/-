@@ -1,46 +1,65 @@
 body { 
-  /* 爽やかなブルーグレーのグラデーション背景に変更 */
-  background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
+  /* 明るくワクワクするパステルグラデーション背景 */
+  background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 50%, #fff1eb 100%);
   background-attachment: fixed;
-  color: #fff; 
-  font-family: 'Helvetica Neue', Arial, sans-serif; 
+  color: #2c3e50; 
+  font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif; 
   text-align: center; 
   margin: 0; 
   padding: 10px; 
 }
 
-#char-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 900px; margin: 20px auto; }
-.char-card { background: rgba(0, 0, 0, 0.4); border: 2px solid #aaa; border-radius: 12px; padding: 15px; width: 150px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 8px rgba(0,0,0,0.3); backdrop-filter: blur(5px); }
-.char-card:hover { border-color: #ffcc00; transform: scale(1.05); background: rgba(0, 0, 0, 0.6); box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
-canvas { image-rendering: pixelated; background: rgba(0, 0, 0, 0.5); border-radius: 8px; margin-bottom: 8px; }
+h2, h3 { color: #2c3e50; text-shadow: 1px 1px 0px #fff; }
 
-.battle-field { display: flex; justify-content: center; align-items: center; gap: 30px; margin: 20px 0; }
-.player-box { background: rgba(0, 0, 0, 0.55); border: 2px solid #888; border-radius: 12px; padding: 15px; width: 220px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); backdrop-filter: blur(5px); }
-.vs-text { font-size: 36px; font-weight: 900; color: #ffaa00; text-shadow: 2px 2px 6px rgba(0,0,0,0.7); }
+#char-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 950px; margin: 20px auto; }
+.char-card { background: rgba(255, 255, 255, 0.9); border: 3px solid #74b9ff; border-radius: 16px; padding: 15px; width: 155px; cursor: pointer; transition: 0.25s; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+.char-card:hover { border-color: #ff7675; transform: translateY(-5px) scale(1.03); background: #ffffff; box-shadow: 0 12px 25px rgba(255, 118, 117, 0.3); }
+canvas { image-rendering: pixelated; background: #eef2f5; border-radius: 12px; margin-bottom: 8px; border: 2px solid #dfe6e9; }
 
-/* 手札とカード枠色 (赤/青/黄) */
-#hand-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 900px; margin: 15px auto; }
-.card { background: rgba(30, 35, 45, 0.95); border-radius: 8px; padding: 10px; width: 110px; cursor: pointer; user-select: none; transition: 0.2s; border: 2px solid #666; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-.card:hover { transform: translateY(-8px); }
-.card.type-attack { border-color: #ff5555; box-shadow: 0 0 10px rgba(255, 85, 85, 0.5); }
-.card.type-defense { border-color: #55aaff; box-shadow: 0 0 10px rgba(85, 170, 255, 0.5); }
-.card.type-magic { border-color: #ffcc00; box-shadow: 0 0 10px rgba(255, 204, 0, 0.5); }
+.battle-field { display: flex; justify-content: center; align-items: center; gap: 30px; margin: 15px 0; }
+.player-box { background: rgba(255, 255, 255, 0.95); border: 3px solid #a29bfe; border-radius: 18px; padding: 15px; width: 220px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+.vs-text { font-size: 40px; font-weight: 900; color: #ff7675; text-shadow: 2px 2px 0px #fff, 0 0 10px rgba(255,118,117,0.4); }
 
-.attack-alert-banner { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(30, 15, 20, 0.95); border: 3px solid #ff3344; box-shadow: 0 0 40px rgba(255, 50, 50, 0.9); border-radius: 16px; padding: 25px 50px; z-index: 999; }
-.alert-title { color: #ff5555; font-size: 20px; font-weight: bold; }
-.alert-card-name { font-size: 34px; font-weight: bold; margin: 10px 0; }
-.alert-power-box { font-size: 38px; color: #ffcc00; font-weight: bold; }
+/* カラフルでポップな手札カード */
+#hand-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; max-width: 950px; margin: 15px auto; }
+.card { background: #ffffff; border-radius: 12px; padding: 10px; width: 115px; cursor: pointer; user-select: none; transition: 0.2s; border: 3px solid #ccc; box-shadow: 0 6px 15px rgba(0,0,0,0.08); position: relative; }
+.card:hover { transform: translateY(-10px); box-shadow: 0 12px 20px rgba(0,0,0,0.15); }
 
-/* ログとチャット横並び */
-.bottom-area { display: flex; justify-content: center; gap: 15px; max-width: 900px; margin: 0 auto; margin-top: 25px; }
-#log-box, #chat-box { background: rgba(0, 0, 0, 0.55); border: 1px solid #888; border-radius: 8px; padding: 12px; width: 50%; height: 130px; overflow-y: auto; text-align: left; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); backdrop-filter: blur(5px); }
-#chat-messages { height: 80px; overflow-y: auto; margin-bottom: 8px; }
+/* 属性ごとのカラフルなテーマ枠線・背景 */
+.card.elem-none.type-attack { border-color: #ff6b6b; background: #fff5f5; }
+.card.elem-none.type-defense { border-color: #4dabf7; background: #f0f8ff; }
+.card.elem-fire { border-color: #ff4d4d; background: #fff0f0; }
+.card.elem-water { border-color: #339af0; background: #e7f5ff; }
+.card.elem-grass { border-color: #51cf66; background: #ebfbee; }
+.card.elem-thunder { border-color: #fcc419; background: #fff9db; }
+.card.elem-wind { border-color: #20c997; background: #e6fcf5; }
+.card.type-heal { border-color: #ff8787; background: #fff0f6; }
+
+.elem-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; color: #fff; margin-bottom: 4px; }
+.bg-fire { background: #ff4d4d; }
+.bg-water { background: #339af0; }
+.bg-grass { background: #51cf66; }
+.bg-thunder { background: #fcc419; color: #333; }
+.bg-wind { background: #20c997; }
+.bg-none { background: #868e96; }
+.bg-heal { background: #ff8787; }
+
+/* 攻撃警告バナー */
+.attack-alert-banner { position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%); background: rgba(255, 255, 255, 0.98); border: 4px solid #ff4d4d; box-shadow: 0 15px 40px rgba(255, 77, 77, 0.3); border-radius: 20px; padding: 25px 50px; z-index: 999; }
+.alert-title { color: #ff4d4d; font-size: 22px; font-weight: bold; }
+.alert-card-name { font-size: 32px; font-weight: bold; margin: 10px 0; color: #2c3e50; }
+.alert-power-val { font-size: 40px; color: #fcc419; font-weight: bold; text-shadow: 1px 1px 0 #000; }
+
+/* ログ・チャットエリア */
+.bottom-area { display: flex; justify-content: center; gap: 15px; max-width: 950px; margin: 0 auto; margin-top: 20px; }
+#log-box, #chat-box { background: rgba(255, 255, 255, 0.9); border: 2px solid #a29bfe; border-radius: 12px; padding: 12px; width: 50%; height: 140px; overflow-y: auto; text-align: left; font-size: 14px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+#chat-messages { height: 85px; overflow-y: auto; margin-bottom: 8px; }
 .chat-input-area { display: flex; gap: 8px; }
-#chat-input { flex: 1; background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid #aaa; padding: 8px; border-radius: 4px; outline: none; }
-#chat-input:focus { border-color: #ffcc00; }
-#chat-send { background: #4ca1af; color: #fff; border: none; cursor: pointer; padding: 8px 15px; border-radius: 4px; font-weight: bold; transition: 0.2s; }
-#chat-send:hover { background: #3b8a97; }
+#chat-input { flex: 1; background: #fff; color: #2c3e50; border: 2px solid #74b9ff; padding: 8px; border-radius: 8px; outline: none; }
+#chat-input:focus { border-color: #0984e3; }
+#chat-send { background: #74b9ff; color: #fff; border: none; cursor: pointer; padding: 8px 18px; border-radius: 8px; font-weight: bold; transition: 0.2s; }
+#chat-send:hover { background: #0984e3; }
 
-#toast-msg { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ff3344; padding: 12px 25px; border-radius: 8px; display: none; z-index: 1000; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-#pass-btn { padding: 10px 20px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #888; border-radius: 6px; cursor: pointer; margin-top: 15px; font-weight: bold; transition: 0.2s; }
-#pass-btn:hover { background: rgba(255,255,255,0.2); }
+#toast-msg { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ff7675; color: #fff; padding: 12px 25px; border-radius: 12px; display: none; z-index: 1000; font-weight: bold; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+#pass-btn { padding: 12px 28px; background: #ffeaa7; color: #d63031; border: 2px solid #fdcb6e; border-radius: 12px; cursor: pointer; margin-top: 15px; font-size: 16px; font-weight: bold; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+#pass-btn:hover { background: #fdcb6e; transform: scale(1.05); }
