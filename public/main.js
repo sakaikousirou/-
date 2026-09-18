@@ -2,7 +2,6 @@ const socket = io();
 let currentRoom = null;
 let myPlayerNumber = null;
 
-// キャラ10体分のドット絵データ (R=赤, B=黒, O=肌色, Y=黄, G=緑, S=銀, P=紫, W=白, C=水色)
 const PIXEL_DATA = {
   suzuki: ["...RRRR...","..RRRRRR..",".RROOOORR.",".OOOOOOOO.","..RRRRRR..",".RR.RR.RR.","..RRRRRR..","...RRRR...","...BBBB..."],
   wizard: ["...PPPP...","..PPPPPP..","..PPOOPP..",".OOOOOOOO.","..PPPPPP..",".YY.PP.YY.","..PPPPPP..","...PPPP...","...BBBB..."],
@@ -48,7 +47,7 @@ socket.on("selectCharacterPhase", (data) => {
   Object.keys(data.characters).forEach(key => {
     const c = data.characters[key];
     const el = document.createElement("div"); el.className = "char-card";
-    el.innerHTML = `<canvas id="cvs-${key}" width="64" height="64"></canvas><h4>${c.name}</h4><div style="font-size:12px">HP:${c.hp} / MP:${c.mp}</div>`;
+    el.innerHTML = `<canvas id="cvs-${key}" width="64" height="64"></canvas><h4 style="margin:5px 0; color:#2c3e50">${c.name}</h4><div style="font-size:12px; margin-bottom:5px; color:#ff7675; font-weight:bold;">HP:${c.hp} / MP:${c.mp}</div><div style="font-size:11px; color:#636e72;">${c.desc}</div>`;
     el.onclick = () => { socket.emit("selectCharacter", { room: currentRoom, playerNumber: myPlayerNumber, charKey: key }); document.getElementById("char-select-screen").style.display = "none"; document.getElementById("game-screen").style.display = "block"; };
     grid.appendChild(el);
     setTimeout(() => drawPixelArt(`cvs-${key}`, key), 50);
@@ -70,8 +69,13 @@ function updateView(data) {
   if(enD) { document.getElementById("enemy-name").innerText = enD.char; document.getElementById("enemy-hp").innerText = enD.hp; document.getElementById("enemy-mp").innerText = enD.mp; drawPixelArt("enemy-canvas", enD.charKey); }
 
   const guide = document.getElementById("turn-guide-text");
-  if(isMyTurn) guide.innerText = data.phase === "ATTACK" ? "⚔️ あなたの攻撃ターン！" : "🛡️ あなたの防御ターン！";
-  else guide.innerText = "⌛ 相手の行動を待っています...";
+  if(isMyTurn) {
+    guide.innerText = data.phase === "ATTACK" ? "⚔️ あなたの攻撃ターン！" : "🛡️ あなたの防御ターン！";
+    guide.style.color = data.phase === "ATTACK" ? "#d63031" : "#0984e3";
+  } else {
+    guide.innerText = "⌛ 相手の行動を待っています...";
+    guide.style.color = "#636e72";
+  }
 
   const banner = document.getElementById("center-attack-banner");
   if(data.phase === "DEFENSE" && data.pendingAttack && isMyTurn) {
@@ -83,18 +87,25 @@ function updateView(data) {
   if(myD && myD.hand) renderHand(myD.hand);
 }
 
-// 枠色を種類によって変える
+// 属性・種類のバッジとカラフル描画
 function renderHand(handCards) {
   const c = document.getElementById("hand-container"); c.innerHTML = "";
   handCards.forEach(card => {
     const el = document.createElement("div");
-    // カテゴリに応じた枠色のクラスを付与
-    let typeClass = "type-attack"; // 赤
-    if(card.type === "defense") typeClass = "type-defense"; // 青
-    if(card.type === "magic" || card.type === "heal" || card.category === "魔法") typeClass = "type-magic"; // 黄
+    const elemClass = `elem-${card.element || 'none'}`;
+    const typeClass = `type-${card.type}`;
+    el.className = `card ${elemClass} ${typeClass}`;
 
-    el.className = `card ${typeClass}`;
-    el.innerHTML = `<div style="font-size:11px">${card.category}</div><div style="font-weight:bold;margin:3px 0">${card.name}</div><div>${card.type==='defense'?'軽減':'威力'}:${card.power}</div><div style="font-size:12px">MP:${card.mp}</div>`;
+    let badgeClass = "bg-none";
+    if (card.type === "heal") badgeClass = "bg-heal";
+    else if (card.element && card.element !== "none") badgeClass = `bg-${card.element}`;
+
+    el.innerHTML = `
+      <span class="elem-badge ${badgeClass}">${card.category}</span>
+      <div style="font-weight:bold; margin:3px 0; font-size:13px; color:#2c3e50;">${card.name}</div>
+      <div style="color:#2c3e50; font-weight:bold;">${card.type==='defense'?'軽減':'威力'}:${card.power}</div>
+      <div style="font-size:12px; color:#0984e3; font-weight:bold; margin-top:2px;">MP:${card.mp}</div>
+    `;
     el.onclick = () => socket.emit("playCard", { room: currentRoom, playerNumber: myPlayerNumber, cardInstanceId: card.instanceId });
     c.appendChild(el);
   });
@@ -110,9 +121,14 @@ document.getElementById("chat-send").onclick = () => {
     input.value = "";
   }
 };
+document.getElementById("chat-input").addEventListener("keypress", function(event) {
+  if (event.key === "Enter") {
+    document.getElementById("chat-send").click();
+  }
+});
 socket.on("receiveChat", (data) => {
   const cb = document.getElementById("chat-messages");
-  const color = data.playerNumber === myPlayerNumber ? "#00e5ff" : "#ff5252";
+  const color = data.playerNumber === myPlayerNumber ? "#0984e3" : "#d63031";
   cb.innerHTML += `<div><strong style="color:${color}">${data.sender}:</strong> ${data.message}</div>`;
   cb.scrollTop = cb.scrollHeight;
 });
