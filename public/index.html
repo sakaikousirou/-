@@ -18,7 +18,6 @@
             overflow-x: hidden;
         }
 
-        /* 動きのある背景パーティクル */
         body::before {
             content: '';
             position: fixed;
@@ -42,7 +41,6 @@
 
         .container { max-width: 960px; margin: 0 auto; position: relative; }
 
-        /* 豪華なネオンタイトル */
         .main-title {
             font-size: 42px;
             font-weight: 900;
@@ -60,7 +58,7 @@
             to { filter: drop-shadow(0 0 25px rgba(249, 212, 35, 0.9)); }
         }
 
-        /* パネルデザイン (ゲーミングガラスモフィズム) */
+        /* パネルデザイン */
         .panel { 
             background: rgba(30, 41, 59, 0.85); 
             padding: 30px; 
@@ -71,7 +69,6 @@
             border: 2px solid #3b82f6;
         }
 
-        /* ログイン・参加パネル */
         .login-box {
             text-align: center;
             background: linear-gradient(145deg, #1e293b, #0f172a);
@@ -81,23 +78,11 @@
             margin: 0 auto;
         }
 
-        .login-box h3 {
-            font-size: 22px;
-            color: #f1c40f;
-            text-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
-            margin-top: 10px;
-        }
+        .login-box h3 { font-size: 22px; color: #f1c40f; text-shadow: 0 0 10px rgba(241, 196, 15, 0.5); margin-top: 10px; }
 
-        .decor-pixel-banner {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
+        .decor-pixel-banner { display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; }
         .decor-pixel-banner img {
-            width: 44px;
-            height: 44px;
-            image-rendering: pixelated;
+            width: 44px; height: 44px; image-rendering: pixelated;
             animation: float 2.5s ease-in-out infinite alternate;
         }
 
@@ -107,39 +92,21 @@
         }
 
         input[type="number"], select {
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 2px solid #3b82f6;
-            background: #0f172a;
-            color: #fff;
-            font-size: 15px;
-            font-weight: bold;
-            outline: none;
-            transition: all 0.2s;
+            padding: 12px 16px; border-radius: 8px; border: 2px solid #3b82f6; background: #0f172a;
+            color: #fff; font-size: 15px; font-weight: bold; outline: none; transition: all 0.2s;
         }
 
         input[type="number"]:focus, select:focus {
-            border-color: #f1c40f;
-            box-shadow: 0 0 12px rgba(241, 196, 15, 0.6);
+            border-color: #f1c40f; box-shadow: 0 0 12px rgba(241, 196, 15, 0.6);
         }
 
         button { 
-            padding: 12px 22px; 
-            background: linear-gradient(135deg, #ff4e50, #f9d423); 
-            color: #000; 
-            border: none; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: 900;
-            font-size: 15px;
-            box-shadow: 0 4px 15px rgba(255, 78, 80, 0.4);
-            transition: all 0.2s;
+            padding: 12px 22px; background: linear-gradient(135deg, #ff4e50, #f9d423); 
+            color: #000; border: none; border-radius: 8px; cursor: pointer; font-weight: 900;
+            font-size: 15px; box-shadow: 0 4px 15px rgba(255, 78, 80, 0.4); transition: all 0.2s;
         }
 
-        button:hover { 
-            transform: translateY(-2px) scale(1.04);
-            box-shadow: 0 6px 20px rgba(249, 212, 35, 0.7);
-        }
+        button:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 6px 20px rgba(249, 212, 35, 0.7); }
 
         .hidden { display: none !important; }
 
@@ -152,63 +119,38 @@
 
         /* 基本カードデザイン */
         .card { 
-            background: #ffffff; 
-            color: #0f172a; 
-            padding: 14px 12px; 
-            border-radius: 12px; 
-            width: 145px; 
-            cursor: pointer; 
-            text-align: center; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center;
-            transition: all 0.25s ease;
-            box-sizing: border-box;
-            position: relative;
-            user-select: none;
+            background: #ffffff; color: #0f172a; padding: 14px 12px; border-radius: 12px; 
+            width: 145px; cursor: pointer; text-align: center; display: flex; 
+            flex-direction: column; align-items: center; transition: all 0.25s ease;
+            box-sizing: border-box; position: relative; user-select: none;
         }
         .card:hover { transform: translateY(-6px) scale(1.03); }
 
-        /* --- 攻撃・防御・回復の強固な色分け & 発光演出 --- */
-        /* 攻撃カード (赤) */
-        .card.attack, .card[data-type="attack"] { 
-            border: 3px solid #ef4444; 
-            box-shadow: 0 0 12px rgba(239, 68, 68, 0.6); 
-            background: linear-gradient(180deg, #ffffff 0%, #fee2e2 100%);
-        }
+        /* カードタイプ別の色設定 */
+        .card.attack, .card[data-type="attack"] { border: 3px solid #ef4444; background: linear-gradient(180deg, #ffffff 0%, #fee2e2 100%); }
+        .card.defense, .card[data-type="defense"] { border: 3px solid #3b82f6; background: linear-gradient(180deg, #ffffff 0%, #dbeafe 100%); }
+        .card.heal, .card[data-type="heal"] { border: 3px solid #10b981; background: linear-gradient(180deg, #ffffff 0%, #d1fae5 100%); }
 
-        /* 防御カード (青) */
-        .card.defense, .card[data-type="defense"] { 
-            border: 3px solid #3b82f6; 
-            box-shadow: 0 0 12px rgba(59, 130, 246, 0.6); 
-            background: linear-gradient(180deg, #ffffff 0%, #dbeafe 100%);
-        }
-
-        /* 回復カード (緑) */
-        .card.heal, .card[data-type="heal"] { 
-            border: 3px solid #10b981; 
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.6); 
-            background: linear-gradient(180deg, #ffffff 0%, #d1fae5 100%);
-        }
-
-        /* ターン時強調パルス発光 (攻撃:赤 / 防御:青) */
+        /* パルス発光アニメーション (攻撃ターン/防御ターンで完全分離) */
         .card.turn-highlight-attack {
-            animation: pulse-red 1.2s infinite ease-in-out;
+            animation: pulse-red 1.1s infinite ease-in-out;
+            border-color: #ef4444;
         }
         .card.turn-highlight-defense {
-            animation: pulse-blue 1.2s infinite ease-in-out;
+            animation: pulse-blue 1.1s infinite ease-in-out;
+            border-color: #3b82f6;
         }
 
         @keyframes pulse-red {
-            0% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); transform: scale(1); }
+            0% { box-shadow: 0 0 6px rgba(239, 68, 68, 0.5); transform: scale(1); }
             50% { box-shadow: 0 0 25px rgba(239, 68, 68, 1); transform: scale(1.05); }
-            100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); transform: scale(1); }
+            100% { box-shadow: 0 0 6px rgba(239, 68, 68, 0.5); transform: scale(1); }
         }
 
         @keyframes pulse-blue {
-            0% { box-shadow: 0 0 8px rgba(59, 130, 246, 0.6); transform: scale(1); }
+            0% { box-shadow: 0 0 6px rgba(59, 130, 246, 0.5); transform: scale(1); }
             50% { box-shadow: 0 0 25px rgba(59, 130, 246, 1); transform: scale(1.05); }
-            100% { box-shadow: 0 0 8px rgba(59, 130, 246, 0.6); transform: scale(1); }
+            100% { box-shadow: 0 0 6px rgba(59, 130, 246, 0.5); transform: scale(1); }
         }
 
         /* ステータスエリア */
@@ -220,25 +162,38 @@
         
         .timer { font-size: 26px; font-weight: 900; color: #ff4e50; text-align: center; margin-bottom: 15px; text-shadow: 0 0 10px rgba(255, 78, 80, 0.5); }
 
-        /* ポップアップ演出 (ダメージ) */
-        #damage-popup {
-            position: fixed;
-            top: 40%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.5);
-            font-size: 52px;
-            font-weight: 900;
-            color: #ff3333;
-            text-shadow: 0 0 15px #000, 3px 3px 0px #000;
-            pointer-events: none;
-            opacity: 0;
-            z-index: 9999;
-            transition: all 0.1s ease-out;
+        /* 被弾フラッシュ */
+        #screen-flash {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(239, 68, 68, 0.4); pointer-events: none; opacity: 0; z-index: 9998;
         }
-        #damage-popup.show {
-            animation: popup-anim 0.8s ease-out forwards;
+        #screen-flash.flash { animation: flash-anim 0.5s ease-out; }
+        @keyframes flash-anim {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0; }
         }
 
+        /* 攻撃カットインバナー */
+        #attack-banner {
+            position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0.6);
+            background: rgba(15, 23, 42, 0.95); border: 3px solid #ef4444;
+            box-shadow: 0 0 35px rgba(239, 68, 68, 0.8); padding: 20px 40px; border-radius: 16px;
+            text-align: center; pointer-events: none; opacity: 0; z-index: 9999;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #attack-banner.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        #attack-banner .title { font-size: 18px; color: #f1c40f; font-weight: bold; }
+        #attack-banner .skill { font-size: 32px; color: #ef4444; font-weight: 900; margin-top: 6px; text-shadow: 0 0 10px rgba(239, 68, 68, 0.5); }
+        #attack-banner .warning { font-size: 16px; color: #38bdf8; margin-top: 8px; font-weight: bold; }
+
+        /* ダメージポップアップ */
+        #damage-popup {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+            font-size: 52px; font-weight: 900; color: #ff3333; text-shadow: 0 0 15px #000, 3px 3px 0px #000;
+            pointer-events: none; opacity: 0; z-index: 9999; transition: all 0.1s ease-out;
+        }
+        #damage-popup.show { animation: popup-anim 0.8s ease-out forwards; }
         @keyframes popup-anim {
             0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
             30% { opacity: 1; transform: translate(-50%, -60%) scale(1.3); }
@@ -248,17 +203,20 @@
     </style>
 </head>
 <body>
-<div class="container">
-    <!-- ダメージ表示用ポップアップ -->
-    <div id="damage-popup"></div>
+<div id="screen-flash"></div>
+<div id="attack-banner">
+    <div class="title"></div>
+    <div class="skill"></div>
+    <div class="warning"></div>
+</div>
+<div id="damage-popup"></div>
 
+<div class="container">
     <h1 class="main-title">🔥 カオスカードバトル</h1>
 
     <!-- ログイン画面 -->
     <div id="login-panel" class="panel login-box">
-        <div class="decor-pixel-banner" id="login-decor">
-            <!-- JavaScriptでドット絵プレビューアイコンを動的に生成挿入 -->
-        </div>
+        <div class="decor-pixel-banner" id="login-decor"></div>
         <h3>⚔️ ルームに参加する</h3>
         <div style="margin: 15px 0;">
             <input type="number" id="room-input" placeholder="ルーム番号" value="1">
@@ -305,10 +263,8 @@
     </div>
 </div>
 
-<!-- Socket.io -->
 <script src="/socket.io/socket.io.js"></script>
 <script>
-    // --- ドット絵データ & 描画 ---
     const PIXEL_DATA = {
       suzuki: ["...RRRR...","..RRRRRR..",".RROOOORR.",".OOOOOOOO.","..RRRRRR..",".RR.RR.RR.","..RRRRRR..","...RRRR...","...BBBB..."],
       wizard: ["...PPPP...","..PPPPPP..","..PPOOPP..",".OOOOOOOO.","..PPPPPP..",".YY.PP.YY.","..PPPPPP..","...PPPP...","...BBBB..."],
@@ -350,7 +306,6 @@
       return canvas.toDataURL();
     }
 
-    // ログイン画面にドット絵アイコンを装飾
     window.addEventListener('DOMContentLoaded', () => {
         const decor = document.getElementById('login-decor');
         ['suzuki', 'wizard', 'knight', 'ninja'].forEach(key => {
@@ -360,10 +315,11 @@
         });
     });
 
-    // --- 通信処理 ---
     const socket = io();
     let myRoom = null;
     let myPlayerNumber = null;
+    let isDefenseTurn = false; // 防御ターンかどうかのフラグ
+    let lastPlayersData = null;
 
     const ui = {
         login: document.getElementById('login-panel'),
@@ -378,13 +334,35 @@
         timerDisplay: document.getElementById('timer-display'),
         chatLog: document.getElementById('chat-log'),
         chatInput: document.getElementById('chat-input'),
-        damagePopup: document.getElementById('damage-popup')
+        damagePopup: document.getElementById('damage-popup'),
+        screenFlash: document.getElementById('screen-flash'),
+        attackBanner: document.getElementById('attack-banner')
     };
+
+    function triggerScreenFlash() {
+        ui.screenFlash.classList.remove('flash');
+        void ui.screenFlash.offsetWidth;
+        ui.screenFlash.classList.add('flash');
+    }
+
+    function showAttackBanner(attackerText, skillText, warningText = "") {
+        ui.attackBanner.querySelector('.title').textContent = attackerText;
+        ui.attackBanner.querySelector('.skill').textContent = skillText;
+        ui.attackBanner.querySelector('.warning').textContent = warningText;
+        
+        ui.attackBanner.classList.remove('show');
+        void ui.attackBanner.offsetWidth;
+        ui.attackBanner.classList.add('show');
+        
+        setTimeout(() => {
+            ui.attackBanner.classList.remove('show');
+        }, 2200);
+    }
 
     function showDamagePopup(text) {
         ui.damagePopup.textContent = text;
         ui.damagePopup.classList.remove('show');
-        void ui.damagePopup.offsetWidth; // リフロー発生
+        void ui.damagePopup.offsetWidth;
         ui.damagePopup.classList.add('show');
     }
 
@@ -394,10 +372,33 @@
         element.appendChild(div);
         element.scrollTop = element.scrollHeight;
 
-        // ダメージログ検知で画面中央にポップアップ表示
+        // ダメージ表示
         const damageMatch = msg.match(/(\d+)\s*ダメージ/);
         if (damageMatch) {
             showDamagePopup(`${damageMatch[1]} DAMAGE!`);
+        }
+
+        // 攻撃使用の判定と画面通知
+        const attackMatch = msg.match(/(.+) が (.+) に「(.+)」を使用/);
+        if (attackMatch) {
+            const attacker = attackMatch[1].trim();
+            const target = attackMatch[2].trim();
+            const skill = attackMatch[3].trim();
+
+            const myData = lastPlayersData ? lastPlayersData[myPlayerNumber] : null;
+            const myName = myData ? myData.char : '';
+            const isMeTarget = target.includes(myName) || target.includes('自分') || target.includes(`プレイヤー${myPlayerNumber}`);
+
+            if (isMeTarget) {
+                isDefenseTurn = true; // 相手からの攻撃を受けたので防御ターンに設定
+                triggerScreenFlash();
+                showAttackBanner(`⚠️ ${attacker} から攻撃！`, `『${skill}』`, "🛡️ 防御カードを選択してガード！");
+            } else {
+                isDefenseTurn = false;
+                showAttackBanner(`⚔️ ${attacker} の攻撃！`, `『${skill}』`, `${target} へ発動`);
+            }
+        } else if (msg.includes('パス') || msg.includes('ガード') || msg.includes('防御')) {
+            isDefenseTurn = false;
         }
     }
 
@@ -415,10 +416,12 @@
     }
 
     function playCard(cardInstanceId) {
+        isDefenseTurn = false;
         socket.emit('playCard', { room: myRoom, playerNumber: myPlayerNumber, cardInstanceId, targetPlayerNumber: null });
     }
 
     function passTurn() {
+        isDefenseTurn = false;
         socket.emit('passTurn', { room: myRoom, playerNumber: myPlayerNumber });
     }
 
@@ -465,6 +468,7 @@
     });
 
     socket.on('gameStateUpdate', data => {
+        lastPlayersData = data.players;
         if (data.log) addLog(data.log);
         updateBoard(data);
     });
@@ -482,6 +486,7 @@
 
     function updateBoard(data) {
         const players = data.players;
+        lastPlayersData = players;
         const myData = players[myPlayerNumber];
         const isMyTurn = data.currentTurn === myPlayerNumber;
 
@@ -513,17 +518,22 @@
             myData.hand.forEach(card => {
                 const cDiv = document.createElement('div');
                 
-                // カード種別の判定
+                // カードカテゴリの判定
                 let cardType = card.type || 'attack';
                 if (card.category && card.category.includes('防御')) cardType = 'defense';
                 if (card.category && card.category.includes('攻撃')) cardType = 'attack';
                 if (card.category && card.category.includes('回復')) cardType = 'heal';
 
-                // 自分のターン時のハイライトクラス
+                // 自分のターン時の光り方を完全分離
                 let highlightClass = '';
                 if (isMyTurn) {
-                    if (cardType === 'attack') highlightClass = 'turn-highlight-attack';
-                    if (cardType === 'defense') highlightClass = 'turn-highlight-defense';
+                    if (isDefenseTurn) {
+                        // 防御ターン時：防御カードのみ青く発光
+                        if (cardType === 'defense') highlightClass = 'turn-highlight-defense';
+                    } else {
+                        // 攻撃ターン時：攻撃カードのみ赤く発光
+                        if (cardType === 'attack') highlightClass = 'turn-highlight-attack';
+                    }
                 }
 
                 cDiv.className = `card ${cardType} ${highlightClass}`;
