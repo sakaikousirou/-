@@ -4,69 +4,194 @@
     <meta charset="UTF-8">
     <title>カオスカードバトル</title>
     <style>
-        /* 元のダークテーマUI */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #2c3e50; color: #ecf0f1; margin: 0; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; position: relative; }
-        .panel { background: #34495e; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        
-        button { padding: 10px 15px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; margin: 5px; font-weight: bold;}
-        button:hover { background: #c0392b; }
-        input, select { padding: 10px; margin: 5px; border-radius: 4px; border: none; }
-        .hidden { display: none; }
-        
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;900&display=swap');
+
+        /* 全体背景（ゲーミングファンタジー風グラデーション＋パーティクル） */
+        body {
+            font-family: 'M PLUS Rounded 1c', 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        /* 動きのある背景パーティクル */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                radial-gradient(2px 2px at 20px 30px, #e74c3c, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, #3498db, rgba(0,0,0,0)),
+                radial-gradient(3px 3px at 50px 160px, #f1c40f, rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 90px 40px, #2ecc71, rgba(0,0,0,0));
+            background-repeat: repeat;
+            background-size: 200px 200px;
+            opacity: 0.35;
+            z-index: -1;
+            animation: stars 20s linear infinite;
+        }
+
+        @keyframes stars {
+            from { background-position: 0 0; }
+            to { background-position: 200px 400px; }
+        }
+
+        .container { max-width: 960px; margin: 0 auto; position: relative; }
+
+        /* 豪華なネオンタイトル */
+        .main-title {
+            font-size: 42px;
+            font-weight: 900;
+            text-align: center;
+            margin: 10px 0 25px 0;
+            background: linear-gradient(135deg, #ff4e50 0%, #f9d423 50%, #e74c3c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+            animation: title-glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes title-glow {
+            from { filter: drop-shadow(0 0 10px rgba(255, 78, 80, 0.6)); }
+            to { filter: drop-shadow(0 0 25px rgba(249, 212, 35, 0.9)); }
+        }
+
+        /* パネルデザイン (ゲーミングガラスモフィズム) */
+        .panel { 
+            background: rgba(30, 41, 59, 0.85); 
+            padding: 30px; 
+            border-radius: 16px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1); 
+            backdrop-filter: blur(10px);
+            border: 2px solid #3b82f6;
+        }
+
+        /* ログイン・参加パネル */
+        .login-box {
+            text-align: center;
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 3px solid #ff4e50;
+            box-shadow: 0 0 30px rgba(255, 78, 80, 0.3);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .login-box h3 {
+            font-size: 22px;
+            color: #f1c40f;
+            text-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+            margin-top: 10px;
+        }
+
+        .decor-pixel-banner {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .decor-pixel-banner img {
+            width: 44px;
+            height: 44px;
+            image-rendering: pixelated;
+            animation: float 2.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-8px); }
+        }
+
+        input[type="number"], select {
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 2px solid #3b82f6;
+            background: #0f172a;
+            color: #fff;
+            font-size: 15px;
+            font-weight: bold;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        input[type="number"]:focus, select:focus {
+            border-color: #f1c40f;
+            box-shadow: 0 0 12px rgba(241, 196, 15, 0.6);
+        }
+
+        button { 
+            padding: 12px 22px; 
+            background: linear-gradient(135deg, #ff4e50, #f9d423); 
+            color: #000; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 900;
+            font-size: 15px;
+            box-shadow: 0 4px 15px rgba(255, 78, 80, 0.4);
+            transition: all 0.2s;
+        }
+
+        button:hover { 
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 6px 20px rgba(249, 212, 35, 0.7);
+        }
+
+        .hidden { display: none !important; }
+
         /* ログ & チャット */
-        .log-box { height: 150px; overflow-y: scroll; background: #1a252f; padding: 10px; border-radius: 4px; font-family: monospace; margin-bottom: 10px; }
-        .chat-box { height: 100px; overflow-y: scroll; background: #1a252f; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
-        
+        .log-box { height: 160px; overflow-y: scroll; background: #090a0f; padding: 12px; border-radius: 8px; font-family: monospace; margin-bottom: 15px; border: 1px solid #334155; color: #38bdf8; }
+        .chat-box { height: 100px; overflow-y: scroll; background: #090a0f; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #334155; }
+
         /* カードコンテナ */
-        .card-container { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; justify-content: center; }
-        
+        .card-container { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 15px; justify-content: center; }
+
         /* 基本カードデザイン */
         .card { 
-            background: #ecf0f1; 
-            color: #2c3e50; 
-            padding: 12px 10px; 
-            border-radius: 8px; 
-            width: 140px; 
+            background: #ffffff; 
+            color: #0f172a; 
+            padding: 14px 12px; 
+            border-radius: 12px; 
+            width: 145px; 
             cursor: pointer; 
             text-align: center; 
             display: flex; 
             flex-direction: column; 
             align-items: center;
-            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            transition: all 0.25s ease;
             box-sizing: border-box;
+            position: relative;
+            user-select: none;
         }
-        .card:hover { transform: translateY(-4px); }
+        .card:hover { transform: translateY(-6px) scale(1.03); }
 
-        /* --- 攻撃・防御・回復の強固な色分け & グロー演出 --- */
+        /* --- 攻撃・防御・回復の強固な色分け & 発光演出 --- */
         /* 攻撃カード (赤) */
         .card.attack, .card[data-type="attack"] { 
-            border: 3px solid #e74c3c; 
-            box-shadow: 0 0 10px rgba(231, 76, 60, 0.6); 
-            background: linear-gradient(180deg, #ffffff 0%, #fadbd8 100%);
-        }
-        .card.attack:hover {
-            box-shadow: 0 0 18px rgba(231, 76, 60, 0.9);
+            border: 3px solid #ef4444; 
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.6); 
+            background: linear-gradient(180deg, #ffffff 0%, #fee2e2 100%);
         }
 
         /* 防御カード (青) */
         .card.defense, .card[data-type="defense"] { 
-            border: 3px solid #3498db; 
-            box-shadow: 0 0 10px rgba(52, 152, 219, 0.6); 
-            background: linear-gradient(180deg, #ffffff 0%, #d4e6f1 100%);
-        }
-        .card.defense:hover {
-            box-shadow: 0 0 18px rgba(52, 152, 219, 0.9);
+            border: 3px solid #3b82f6; 
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.6); 
+            background: linear-gradient(180deg, #ffffff 0%, #dbeafe 100%);
         }
 
         /* 回復カード (緑) */
         .card.heal, .card[data-type="heal"] { 
-            border: 3px solid #2ecc71; 
-            box-shadow: 0 0 10px rgba(46, 204, 113, 0.6); 
-            background: linear-gradient(180deg, #ffffff 0%, #d5f5e3 100%);
+            border: 3px solid #10b981; 
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.6); 
+            background: linear-gradient(180deg, #ffffff 0%, #d1fae5 100%);
         }
 
-        /* ターン時強調アニメーション (パルス発光) */
+        /* ターン時強調パルス発光 (攻撃:赤 / 防御:青) */
         .card.turn-highlight-attack {
             animation: pulse-red 1.2s infinite ease-in-out;
         }
@@ -75,25 +200,25 @@
         }
 
         @keyframes pulse-red {
-            0% { box-shadow: 0 0 8px rgba(231, 76, 60, 0.6); transform: scale(1); }
-            50% { box-shadow: 0 0 20px rgba(231, 76, 60, 1); transform: scale(1.03); }
-            100% { box-shadow: 0 0 8px rgba(231, 76, 60, 0.6); transform: scale(1); }
+            0% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); transform: scale(1); }
+            50% { box-shadow: 0 0 25px rgba(239, 68, 68, 1); transform: scale(1.05); }
+            100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); transform: scale(1); }
         }
 
         @keyframes pulse-blue {
-            0% { box-shadow: 0 0 8px rgba(52, 152, 219, 0.6); transform: scale(1); }
-            50% { box-shadow: 0 0 20px rgba(52, 152, 219, 1); transform: scale(1.03); }
-            100% { box-shadow: 0 0 8px rgba(52, 152, 219, 0.6); transform: scale(1); }
+            0% { box-shadow: 0 0 8px rgba(59, 130, 246, 0.6); transform: scale(1); }
+            50% { box-shadow: 0 0 25px rgba(59, 130, 246, 1); transform: scale(1.05); }
+            100% { box-shadow: 0 0 8px rgba(59, 130, 246, 0.6); transform: scale(1); }
         }
 
         /* ステータスエリア */
-        .status-area { display: flex; justify-content: space-between; margin-bottom: 15px; }
-        .player-status { background: #2c3e50; padding: 10px; border-radius: 6px; width: 48%; border: 1px solid #7f8c8d; }
-        .player-box { display: flex; align-items: center; background: #1a252f; margin-bottom: 8px; padding: 8px; border-radius: 6px; border: 2px solid transparent; }
-        .player-box.active-turn { border: 2px solid #f1c40f; box-shadow: 0 0 10px rgba(241,196,15,0.5); }
+        .status-area { display: flex; justify-content: space-between; margin-bottom: 15px; gap: 15px; }
+        .player-status { background: #0f172a; padding: 12px; border-radius: 10px; width: 48%; border: 1px solid #334155; }
+        .player-box { display: flex; align-items: center; background: #1e293b; margin-bottom: 8px; padding: 10px; border-radius: 8px; border: 2px solid transparent; }
+        .player-box.active-turn { border: 2px solid #f1c40f; box-shadow: 0 0 15px rgba(241,196,15,0.6); }
         .player-info { line-height: 1.4; }
         
-        .timer { font-size: 24px; font-weight: bold; color: #e74c3c; text-align: center; margin-bottom: 10px;}
+        .timer { font-size: 26px; font-weight: 900; color: #ff4e50; text-align: center; margin-bottom: 15px; text-shadow: 0 0 10px rgba(255, 78, 80, 0.5); }
 
         /* ポップアップ演出 (ダメージ) */
         #damage-popup {
@@ -101,10 +226,10 @@
             top: 40%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0.5);
-            font-size: 48px;
+            font-size: 52px;
             font-weight: 900;
             color: #ff3333;
-            text-shadow: 0 0 10px #000, 3px 3px 0px #000;
+            text-shadow: 0 0 15px #000, 3px 3px 0px #000;
             pointer-events: none;
             opacity: 0;
             z-index: 9999;
@@ -127,49 +252,54 @@
     <!-- ダメージ表示用ポップアップ -->
     <div id="damage-popup"></div>
 
-    <h1 style="text-align: center;">🔥 カオスカードバトル</h1>
+    <h1 class="main-title">🔥 カオスカードバトル</h1>
 
     <!-- ログイン画面 -->
-    <div id="login-panel" class="panel" style="text-align: center;">
-        <h3 style="margin-top: 0;">ルームに参加</h3>
-        <input type="number" id="room-input" placeholder="ルーム番号 (例: 1)" value="1">
-        <select id="mode-input">
-            <option value="1v1">1 vs 1</option>
-            <option value="2v2">2 vs 2</option>
-        </select>
-        <button onclick="joinRoom()">参加する</button>
-        <p id="status-msg" style="margin-bottom: 0;"></p>
+    <div id="login-panel" class="panel login-box">
+        <div class="decor-pixel-banner" id="login-decor">
+            <!-- JavaScriptでドット絵プレビューアイコンを動的に生成挿入 -->
+        </div>
+        <h3>⚔️ ルームに参加する</h3>
+        <div style="margin: 15px 0;">
+            <input type="number" id="room-input" placeholder="ルーム番号" value="1">
+            <select id="mode-input">
+                <option value="1v1">1 vs 1</option>
+                <option value="2v2">2 vs 2</option>
+            </select>
+        </div>
+        <button onclick="joinRoom()">対戦開始！</button>
+        <p id="status-msg" style="margin-top: 15px; color: #f1c40f; font-weight: bold;"></p>
     </div>
 
     <!-- キャラクター選択画面 -->
     <div id="char-select-panel" class="panel hidden">
-        <h3 style="text-align: center; margin-top: 0;">キャラクターを選択してください</h3>
+        <h2 style="text-align: center; color: #f1c40f; margin-top: 0;">⚔️ キャラクターを選択</h2>
         <div id="char-list" class="card-container"></div>
     </div>
 
     <!-- バトル画面 -->
     <div id="battle-panel" class="panel hidden">
-        <div class="timer">残り時間: <span id="timer-display">20</span>秒</div>
+        <div class="timer">⏱️ 残り時間: <span id="timer-display">20</span>秒</div>
         
         <div class="status-area">
-            <div id="teamA-status" class="player-status"><h4 style="margin-top:0; color:#e74c3c;">チーム A</h4></div>
-            <div id="teamB-status" class="player-status"><h4 style="margin-top:0; color:#3498db;">チーム B</h4></div>
+            <div id="teamA-status" class="player-status"><h4 style="margin-top:0; color:#ef4444;">チーム A</h4></div>
+            <div id="teamB-status" class="player-status"><h4 style="margin-top:0; color:#3b82f6;">チーム B</h4></div>
         </div>
 
         <div class="log-box" id="game-log"></div>
 
-        <h3 style="text-align: center; margin-bottom: 5px;">手札 (クリックでプレイ)</h3>
-        <div style="text-align: center;">
-            <button onclick="passTurn()" style="background: #95a5a6; margin-bottom: 15px;">🍃 何もしない（パス / 防御放棄）</button>
+        <h3 style="text-align: center; margin-bottom: 8px; color: #f1c40f;">🃏 あなたの手札</h3>
+        <div style="text-align: center; margin-bottom: 15px;">
+            <button onclick="passTurn()" style="background: #64748b; color: white;">🍃 何もしない（パス / 防御放棄）</button>
         </div>
         <div id="hand-cards" class="card-container"></div>
 
-        <hr style="border-color: #7f8c8d; margin: 30px 0 20px;">
+        <hr style="border-color: #334155; margin: 30px 0 20px;">
         
-        <h3>💬 チャット</h3>
+        <h3 style="color: #38bdf8;">💬 チャット</h3>
         <div class="chat-box" id="chat-log"></div>
         <div style="display: flex; gap: 10px;">
-            <input type="text" id="chat-input" placeholder="メッセージを入力..." style="flex-grow: 1; color: black;">
+            <input type="text" id="chat-input" placeholder="メッセージを入力..." style="flex-grow: 1;">
             <button onclick="sendChat()">送信</button>
         </div>
     </div>
@@ -219,6 +349,16 @@
       }
       return canvas.toDataURL();
     }
+
+    // ログイン画面にドット絵アイコンを装飾
+    window.addEventListener('DOMContentLoaded', () => {
+        const decor = document.getElementById('login-decor');
+        ['suzuki', 'wizard', 'knight', 'ninja'].forEach(key => {
+            const img = document.createElement('img');
+            img.src = createPixelArtUrl(key);
+            decor.appendChild(img);
+        });
+    });
 
     // --- 通信処理 ---
     const socket = io();
@@ -271,7 +411,7 @@
 
     function selectCharacter(charKey) {
         socket.emit('selectCharacter', { room: myRoom, playerNumber: myPlayerNumber, charKey });
-        ui.charSelect.innerHTML = '<h3 style="text-align:center;">他のプレイヤーを待っています...</h3>';
+        ui.charSelect.innerHTML = '<h3 style="text-align:center; color:#f1c40f;">対戦相手を待っています...</h3>';
     }
 
     function playCard(cardInstanceId) {
@@ -307,10 +447,10 @@
             card.className = 'card';
             const imgUrl = createPixelArtUrl(key);
             card.innerHTML = `
-                <img src="${imgUrl}" style="image-rendering: pixelated; margin-bottom: 5px;">
-                <strong>${char.name}</strong>
-                <div style="font-size: 13px; margin: 4px 0; font-weight: bold; color: #c0392b;">HP: ${char.hp} / MP: ${char.mp}</div>
-                <small style="font-size: 11px; color: #555;">${char.desc}</small>
+                <img src="${imgUrl}" style="image-rendering: pixelated; margin-bottom: 6px; width:40px;">
+                <strong style="color:#0f172a;">${char.name}</strong>
+                <div style="font-size: 13px; margin: 4px 0; font-weight: bold; color: #ef4444;">HP: ${char.hp} / MP: ${char.mp}</div>
+                <small style="font-size: 11px; color: #475569;">${char.desc}</small>
             `;
             card.onclick = () => selectCharacter(key);
             ui.charList.appendChild(card);
@@ -345,8 +485,8 @@
         const myData = players[myPlayerNumber];
         const isMyTurn = data.currentTurn === myPlayerNumber;
 
-        ui.teamA.innerHTML = '<h4 style="margin-top:0; color:#e74c3c;">チーム A</h4>';
-        ui.teamB.innerHTML = '<h4 style="margin-top:0; color:#3498db;">チーム B</h4>';
+        ui.teamA.innerHTML = '<h4 style="margin-top:0; color:#ef4444;">チーム A</h4>';
+        ui.teamB.innerHTML = '<h4 style="margin-top:0; color:#3b82f6;">チーム B</h4>';
         
         Object.keys(players).forEach(pNumStr => {
             const pNum = parseInt(pNumStr);
@@ -357,10 +497,10 @@
             const pDiv = document.createElement('div');
             pDiv.className = `player-box ${isTurn ? 'active-turn' : ''}`;
             pDiv.innerHTML = `
-                <img src="${imgUrl}" style="image-rendering: pixelated; margin-right: 10px; ${p.isDead ? 'filter: grayscale(100%); opacity: 0.5;' : ''}">
+                <img src="${imgUrl}" style="image-rendering: pixelated; margin-right: 12px; width:36px; ${p.isDead ? 'filter: grayscale(100%); opacity: 0.5;' : ''}">
                 <div class="player-info" style="${p.isDead ? 'opacity:0.5;' : ''}">
-                    <strong style="${isTurn ? 'color:#f1c40f;' : ''}">${p.char} ${pNum === myPlayerNumber ? '(自分)' : ''}</strong> ${p.isDead ? '💀' : ''}<br>
-                    <span style="color:#e74c3c;">HP: ${p.hp}</span> / <span style="color:#3498db;">MP: ${p.mp}</span>
+                    <strong style="${isTurn ? 'color:#f1c40f;' : 'color:#fff;'}">${p.char} ${pNum === myPlayerNumber ? '(自分)' : ''}</strong> ${p.isDead ? '💀' : ''}<br>
+                    <span style="color:#ef4444; font-weight:bold;">HP: ${p.hp}</span> / <span style="color:#3b82f6; font-weight:bold;">MP: ${p.mp}</span>
                 </div>
             `;
             
@@ -373,13 +513,13 @@
             myData.hand.forEach(card => {
                 const cDiv = document.createElement('div');
                 
-                // カードの種類(type / category)を判定
+                // カード種別の判定
                 let cardType = card.type || 'attack';
                 if (card.category && card.category.includes('防御')) cardType = 'defense';
                 if (card.category && card.category.includes('攻撃')) cardType = 'attack';
                 if (card.category && card.category.includes('回復')) cardType = 'heal';
 
-                // クラス設定
+                // 自分のターン時のハイライトクラス
                 let highlightClass = '';
                 if (isMyTurn) {
                     if (cardType === 'attack') highlightClass = 'turn-highlight-attack';
@@ -390,10 +530,10 @@
                 cDiv.setAttribute('data-type', cardType);
 
                 cDiv.innerHTML = `
-                    <strong>${card.name}</strong>
-                    <small style="margin: 4px 0; display:block; color:#555;">${card.category}</small>
-                    <div style="font-weight:bold;">威力: ${card.power}</div>
-                    <div style="color:#2980b9; font-weight:bold;">消費MP: ${card.mp}</div>
+                    <strong style="color:#0f172a; font-size:14px;">${card.name}</strong>
+                    <small style="margin: 4px 0; display:block; color:#64748b; font-weight:bold;">${card.category}</small>
+                    <div style="font-weight:900; color:#1e293b;">威力: ${card.power}</div>
+                    <div style="color:#2563eb; font-weight:bold;">消費MP: ${card.mp}</div>
                 `;
                 cDiv.onclick = () => playCard(card.instanceId);
                 ui.handCards.appendChild(cDiv);
